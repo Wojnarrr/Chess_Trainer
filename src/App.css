@@ -1,33 +1,9 @@
-/* center the board */
-.board-container {
-  display: flex;
-  justify-content: center;
-  margin-top: 2rem;
-}
-
-/* shake animation */
-@keyframes shake {
-  0%   { transform: translateX(0); }
-  20%  { transform: translateX(-8px); }
-  40%  { transform: translateX(8px); }
-  60%  { transform: translateX(-8px); }
-  80%  { transform: translateX(8px); }
-  100% { transform: translateX(0); }
-}
-
-/* apply shake */
-.shake {
-  animation: shake 0.5s ease;
-}
 .app {
   text-align: center;
 }
 
 .controls {
   margin: 1rem 0;
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
 }
 
 .board-container {
@@ -35,4 +11,39 @@
   justify-content: center;
 }
 
-/* highlight animation is pure CSS background, no keyframes needed */
+/* shake animation on just the mis‑dropped square */
+@keyframes shake {
+  0%   { transform: translateX(0); }
+  20%  { transform: translateX(-6px); }
+  40%  { transform: translateX(6px); }
+  60%  { transform: translateX(-6px); }
+  80%  { transform: translateX(6px); }
+  100% { transform: translateX(0); }
+}
+.openings-list {
+  margin: 1rem auto;
+  max-width: 300px;
+  text-align: left;
+}
+
+.openings-list h2 {
+  margin-bottom: 0.5rem;
+}
+
+.openings-list ul {
+  list-style: none;
+  padding: 0;
+}
+
+.openings-list li + li {
+  margin-top: 0.25rem;
+}
+
+.openings-list button {
+  background: none;
+  border: 1px solid #666;
+  padding: 0.25rem 0.5rem;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
