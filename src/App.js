@@ -4,6 +4,10 @@ import { Chessboard } from "react-chessboard";
 import { OPENINGS } from "./openings";
 import OpeningsList from "./components/OpeningsList";
 import "./App.css";
+import ModeSelector from './components/ModeSelector';
+import SideSelector from './components/SideSelector';
+import DifficultySelector from './components/DifficultySelector';
+import OpeningSelector from './components/OpeningSelector';
 
 const DIFFICULTY_LIVES = {
     Beginner: Infinity,
@@ -199,23 +203,32 @@ export default function App() {
         <div className="app">
             <h1>Chess Trainer & Puzzle</h1>
             <div className="controls">
-                <label>
-                    Mode:
-                    <select value={mode} onChange={e => setMode(e.target.value)}>
-                        {MODES.map(m => <option key={m} value={m}>{m}</option>)}
-                    </select>
-                </label>
-                <label>
-                    Difficulty:
-                    <select value={difficulty} onChange={e => setDifficulty(e.target.value)}>
-                        {DIFFICULTIES.map(d => <option key={d} value={d}>{d}</option>)}
-                    </select>
-                </label>
+                <ModeSelector mode={mode} onChange={setMode} />
+                <DifficultySelector difficulty={difficulty} onChange={setDifficulty} />
+                {/*<SideSelector side={side} onChange={setSide} />*/}
+
+
+                {/*<label>*/}
+                {/*    Mode:*/}
+                {/*    <select value={mode} onChange={e => setMode(e.target.value)}>*/}
+                {/*        {MODES.map(m => <option key={m} value={m}>{m}</option>)}*/}
+                {/*    </select>*/}
+                {/*</label>*/}
+                {/*<label>*/}
+                {/*    Difficulty:*/}
+                {/*    <select value={difficulty} onChange={e => setDifficulty(e.target.value)}>*/}
+                {/*        {DIFFICULTIES.map(d => <option key={d} value={d}>{d}</option>)}*/}
+                {/*    </select>*/}
+                {/*</label>*/}
                 {mode === "Trainer" ? (
-                    <>
-                        <OpeningsList onSelect={name => initTrainer(name)} />
-                        <button onClick={() => initTrainer(selected)} disabled={!selected}>Reset Trainer</button>
-                    </>
+                    <OpeningSelector
+                        selected={selected}
+                        onSelect={name => initTrainer(name)}
+                    />
+                    // <>
+                    //     <OpeningsList onSelect={name => initTrainer(name)} />
+                    //     <button onClick={() => initTrainer(selected)} disabled={!selected}>Reset Trainer</button>
+                    // </>
                 ) : (
                     <>
                         <span>Puzzle: {puzzleOpening} move #{puzzleIdx + 1}</span>

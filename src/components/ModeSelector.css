@@ -1,0 +1,29 @@
+/* src/components/ModeSelector.css */
+
+.mode-selector {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.mode-selector button {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.mode-selector button:hover {
+    background-color: #eaeaea;
+    transform: translateY(-2px);
+}
+
+.mode-selector button.active {
+    background-color: #007acc;
+    color: #fff;
+    border-color: #007acc;
+}
