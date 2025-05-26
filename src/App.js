@@ -11,24 +11,47 @@ const DIFFICULTY_LIVES = {
     Expert: 1,
 };
 const DIFFICULTIES = Object.keys(DIFFICULTY_LIVES);
+const MODES = ["Trainer", "Puzzle"];
 
 export default function App() {
+    // Chess instance and board position
     const [game] = useState(() => new Chess());
     const [position, setPosition] = useState(game.fen());
 
-    const [selected, setSelected] = useState("");
-    const [moves, setMoves] = useState([]);        // SAN strings
-    const [idx, setIdx] = useState(0);             // next move index
+    // Common state
+    const [mode, setMode] = useState("Trainer");
     const [difficulty, setDifficulty] = useState("Beginner");
-    const [lives, setLives] = useState(DIFFICULTY_LIVES.Beginner);
+    const [lives, setLives] = useState(DIFFICULTY_LIVES[difficulty]);
     const [gameOver, setGameOver] = useState(false);
     const [shakeSq, setShakeSq] = useState(null);
     const [highlight, setHighlight] = useState({ from: null, to: null });
     const [awaitingBlack, setAwaitingBlack] = useState(false);
 
-    // HINT EFFECT
+    // Trainer state
+    const [selected, setSelected] = useState("");
+    const [moves, setMoves] = useState([]);
+    const [idx, setIdx] = useState(0);
+
+    // Puzzle state
+    const [puzzleOpening, setPuzzleOpening] = useState("");
+    const [puzzleIdx, setPuzzleIdx] = useState(0);
+    const [expectedMove, setExpectedMove] = useState(null);
+    const [score, setScore] = useState(0);
+
+    // Sync lives when difficulty changes
     useEffect(() => {
-        console.log("[DEBUG] useEffect hint effect: idx=", idx, "difficulty=", difficulty);
+        setLives(DIFFICULTY_LIVES[difficulty]);
+    }, [difficulty]);
+
+    // Initialize when mode changes
+    useEffect(() => {
+        if (mode === "Trainer") initTrainer();
+        else initPuzzle();
+    }, [mode]);
+
+    // Hint effect for Trainer mode
+    useEffect(() => {
+        if (mode !== "Trainer") return;
         if (idx < moves.length && idx % 2 === 0) {
             const temp = new Chess();
             for (let i = 0; i < idx; i++) {
@@ -36,119 +59,134 @@ export default function App() {
             }
             let next = null;
             try { next = temp.move(moves[idx]); } catch {}
-            console.log("[DEBUG] Next SAN=", moves[idx], "parsed to", next);
             if (next) {
-                if (difficulty === "Beginner") {
-                    setHighlight({ from: next.from, to: next.to });
-                } else if (difficulty === "Intermediate") {
-                    setHighlight({ from: next.from, to: null });
-                }
+                if (difficulty === "Beginner") setHighlight({ from: next.from, to: next.to });
+                else if (difficulty === "Intermediate") setHighlight({ from: next.from, to: null });
             } else {
                 setHighlight({ from: null, to: null });
             }
         } else {
             setHighlight({ from: null, to: null });
         }
-    }, [moves, idx, difficulty]);
+    }, [moves, idx, difficulty, mode]);
 
-    // Reset logic
-    const resetState = (openingName = selected, diff = difficulty) => {
-        console.log("[DEBUG] resetState: opening=", openingName, "difficulty=", diff);
-        setSelected(openingName);
-        setMoves(openingName ? OPENINGS[openingName] : []);
+    // Initialize Trainer: reset all trainer state
+    function initTrainer(opening = selected) {
+        const arr = opening ? OPENINGS[opening] : [];
+        setSelected(opening);
+        setMoves(arr);
         game.reset();
         setPosition(game.fen());
         setIdx(0);
-        setShakeSq(null);
         setGameOver(false);
-        setDifficulty(diff);
-        setLives(DIFFICULTY_LIVES[diff]);
+        setShakeSq(null);
+        setHighlight({ from: null, to: null });
         setAwaitingBlack(false);
-    };
+    }
 
-    const handleOpeningSelect = name => {
-        console.log("[DEBUG] Opening selected: ", name);
-        resetState(name, difficulty);
-    };
-    const handleDifficultyChange = e => {
-        console.log("[DEBUG] Difficulty changed to: ", e.target.value);
-        resetState(selected, e.target.value);
-    };
+    // Initialize Puzzle: random opening & random white move
+    function initPuzzle() {
+        const names = Object.keys(OPENINGS);
+        const openingName = names[Math.floor(Math.random() * names.length)];
+        const sans = OPENINGS[openingName];
+        const whiteMoves = sans.map((_, i) => i).filter(i => i % 2 === 0);
+        const randIdx = whiteMoves[Math.floor(Math.random() * whiteMoves.length)];
 
-    // Handle White's move
-    const onPieceDrop = (source, target) => {
-        console.log("[DEBUG] onPieceDrop called: source=", source, "target=", target,
-            "idx=", idx, "awaitingBlack=", awaitingBlack, "gameOver=", gameOver);
-        if (gameOver || !selected || awaitingBlack || idx % 2 !== 0 || idx >= moves.length) {
-            console.log("[DEBUG] Drop rejected by state checks");
-            return false;
-        }
-
-        // Compute expected move using fresh initial board
         const temp = new Chess();
-        for (let i = 0; i < idx; i++) {
-            try { temp.move(moves[i]); } catch {}
+        for (let i = 0; i < randIdx; i++) {
+            try { temp.move(sans[i], { sloppy: true }); } catch {}
         }
-        let expected = null;
-        try { expected = temp.move(moves[idx]); } catch {}
-        console.log("[DEBUG] Expected move: SAN=", moves[idx], "parsed=", expected);
+        const fen = temp.fen();
+        const temp2 = new Chess(fen);
+        const exp = temp2.move(sans[randIdx], { sloppy: true });
 
-        if (!expected || expected.from !== source || expected.to !== target) {
-            console.log("[DEBUG] Wrong drop: expected from ", expected?.from, "to ", expected?.to);
+        game.reset();
+        game.load(fen);
+        setPosition(fen);
+        setPuzzleOpening(openingName);
+        setPuzzleIdx(randIdx);
+        setExpectedMove(exp);
+        setScore(0);
+        setGameOver(false);
+        setShakeSq(null);
+        setHighlight({ from: null, to: null });
+    }
+
+    // Handle drops for both modes
+    const onPieceDrop = (source, target) => {
+        if (gameOver) return false;
+
+        if (mode === "Trainer") {
+            // Trainer logic
+            if (!selected || awaitingBlack || idx % 2 !== 0 || idx >= moves.length) return false;
+            const temp = new Chess();
+            for (let i = 0; i < idx; i++) try { temp.move(moves[i]); } catch {};
+            let exp = null;
+            try { exp = temp.move(moves[idx]); } catch {}
+            if (!exp || exp.from !== source || exp.to !== target) {
+                setShakeSq(source);
+                setTimeout(() => setShakeSq(null), 500);
+                if (difficulty !== "Beginner") {
+                    setLives(l => {
+                        const n = l - 1;
+                        if (n <= 0) setGameOver(true);
+                        return n;
+                    });
+                }
+                return false;
+            }
+            game.move({ from: exp.from, to: exp.to, ...(exp.promotion && { promotion: exp.promotion }) });
+            setPosition(game.fen());
+            const wIdx = idx;
+            setIdx(wIdx + 1);
+            setHighlight({ from: null, to: null });
+            setAwaitingBlack(true);
+            setTimeout(() => {
+                const bIdx = wIdx + 1;
+                if (bIdx < moves.length) {
+                    const temp3 = new Chess();
+                    for (let i = 0; i < bIdx; i++) try { temp3.move(moves[i]); } catch {};
+                    const reply = temp3.move(moves[bIdx]);
+                    if (reply) {
+                        game.move({ from: reply.from, to: reply.to, ...(reply.promotion && { promotion: reply.promotion }) });
+                        setPosition(game.fen());
+                        setIdx(prev => prev + 1);
+                    }
+                }
+                setAwaitingBlack(false);
+            }, 300);
+            return true;
+        }
+
+        // Puzzle logic
+        if (!expectedMove) return false;
+        if (source !== expectedMove.from || target !== expectedMove.to) {
             setShakeSq(source);
             setTimeout(() => setShakeSq(null), 500);
             if (difficulty !== "Beginner") {
-                setLives(prev => {
-                    const next = prev - 1;
-                    console.log("[DEBUG] Lose life, lives now=", next);
-                    if (next <= 0) {
-                        console.log("[DEBUG] Game Over triggered");
-                        setGameOver(true);
-                    }
-                    return next;
+                setLives(l => {
+                    const n = l - 1;
+                    if (n <= 0) setGameOver(true);
+                    return n;
                 });
             }
+            game.move({ from: expectedMove.from, to: expectedMove.to, ...(expectedMove.promotion && { promotion: expectedMove.promotion }) });
+            setPosition(game.fen());
             return false;
         }
-
-        console.log("[DEBUG] Correct drop, applying White move");
-        try {
-            game.move({ from: expected.from, to: expected.to, ...(expected.promotion && { promotion: expected.promotion }) });
-        } catch (e) {
-            console.error("[DEBUG] Error applying White move:", e);
-        }
+        setScore(s => s + 1);
+        game.move({ from: expectedMove.from, to: expectedMove.to, ...(expectedMove.promotion && { promotion: expectedMove.promotion }) });
         setPosition(game.fen());
-
-        const whiteIdx = idx;
-        setIdx(whiteIdx + 1);
-        setHighlight({ from: null, to: null });
-        setAwaitingBlack(true);
-
-        // Auto Black reply after delay
-        setTimeout(() => {
-            const blackIdx = whiteIdx + 1;
-            let reply = null;
-            if (blackIdx < moves.length) {
-                const temp2 = new Chess();
-                for (let i = 0; i < blackIdx; i++) {
-                    try { temp2.move(moves[i]); } catch {}
-                }
-                try { reply = temp2.move(moves[blackIdx]); } catch {}
-                console.log("[DEBUG] Black reply expected SAN=", moves[blackIdx], "parsed=", reply);
-                if (reply) {
-                    try {
-                        game.move({ from: reply.from, to: reply.to, ...(reply.promotion && { promotion: reply.promotion }) });
-                    } catch (e) {
-                        console.error("[DEBUG] Error applying Black move:", e);
-                    }
-                    setPosition(game.fen());
-                    setIdx(whiteIdx + 2);
-                }
-            }
-            setAwaitingBlack(false);
-        }, 300);
-
+        setTimeout(initPuzzle, 600);
         return true;
+    };
+
+    // Puzzle hint: show piece only
+    const showHint = () => {
+        if (mode === "Puzzle" && expectedMove) {
+            setHighlight({ from: expectedMove.from, to: null });
+            setTimeout(() => setHighlight({ from: null, to: null }), 1000);
+        }
     };
 
     const customSquareStyles = {
@@ -159,20 +197,37 @@ export default function App() {
 
     return (
         <div className="app">
-            <h1>Interactive Opening Trainer</h1>
-            <OpeningsList onSelect={handleOpeningSelect} />
+            <h1>Chess Trainer & Puzzle</h1>
             <div className="controls">
-                <select value={difficulty} onChange={handleDifficultyChange}>
-                    {DIFFICULTIES.map(d => <option key={d} value={d}>{d}</option>)}
-                </select>
-                <select value={selected} onChange={e => handleOpeningSelect(e.target.value)}>
-                    <option value="">— pick an opening —</option>
-                    {Object.keys(OPENINGS).map(o => <option key={o} value={o}>{o}</option>)}
-                </select>
-                <button onClick={() => resetState(selected, difficulty)} disabled={!selected}>Reset</button>
+                <label>
+                    Mode:
+                    <select value={mode} onChange={e => setMode(e.target.value)}>
+                        {MODES.map(m => <option key={m} value={m}>{m}</option>)}
+                    </select>
+                </label>
+                <label>
+                    Difficulty:
+                    <select value={difficulty} onChange={e => setDifficulty(e.target.value)}>
+                        {DIFFICULTIES.map(d => <option key={d} value={d}>{d}</option>)}
+                    </select>
+                </label>
+                {mode === "Trainer" ? (
+                    <>
+                        <OpeningsList onSelect={name => initTrainer(name)} />
+                        <button onClick={() => initTrainer(selected)} disabled={!selected}>Reset Trainer</button>
+                    </>
+                ) : (
+                    <>
+                        <span>Puzzle: {puzzleOpening} move #{puzzleIdx + 1}</span>
+                        <button onClick={initPuzzle}>New Puzzle</button>
+                        <button onClick={showHint}>Hint</button>
+                        <span>Score: {score}</span>
+                    </>
+                )}
             </div>
             <div className="status">
-                {difficulty !== "Beginner" && <span>Lives: {lives === Infinity ? '∞' : lives}</span>}
+                {mode === "Trainer" && difficulty !== "Beginner" && <span>Lives: {lives === Infinity ? '∞' : lives}</span>}
+                {mode === "Puzzle" && difficulty !== "Beginner" && <span>Lives: {lives === Infinity ? '∞' : lives}</span>}
                 {gameOver && <span className="game-over">Game Over</span>}
             </div>
             <div className="board-container">

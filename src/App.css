@@ -1,49 +1,139 @@
+/* App.css */
+
+/* Global app container */
 .app {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   text-align: center;
+  padding: 1rem;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+  box-sizing: border-box;
 }
 
+/* Controls section */
 .controls {
-  margin: 1rem 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  align-items: flex-end;
+  margin-bottom: 1.5rem;
 }
 
+.controls label {
+  display: flex;
+  flex-direction: column;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-align: left;
+}
+
+.controls select,
+.controls button {
+  margin-top: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.controls button:hover {
+  background-color: #eaeaea;
+}
+
+/* Status area */
+.status {
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+.status .game-over {
+  color: #c00;
+  font-weight: bold;
+  margin-left: 1rem;
+}
+
+/* Chessboard container */
 .board-container {
   display: flex;
   justify-content: center;
+  margin-top: 1rem;
 }
 
-/* shake animation on just the mis‑dropped square */
+/* Shake animation */
 @keyframes shake {
-  0%   { transform: translateX(0); }
-  20%  { transform: translateX(-6px); }
-  40%  { transform: translateX(6px); }
-  60%  { transform: translateX(-6px); }
-  80%  { transform: translateX(6px); }
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
   100% { transform: translateX(0); }
 }
+
+/* Openings list container */
 .openings-list {
-  margin: 1rem auto;
-  max-width: 300px;
-  text-align: left;
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto 1.5rem;
+  padding: 0 1rem;
+  box-sizing: border-box;
 }
 
-.openings-list h2 {
-  margin-bottom: 0.5rem;
+/* Sort button placeholder */
+.openings-list .sort-button {
+  position: absolute;
+  top: 0;
+  right: 1rem;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.9rem;
+  cursor: pointer;
 }
 
-.openings-list ul {
+/* Responsive grid for openings */
+.openings-list > ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-gap: 1rem;
   list-style: none;
   padding: 0;
+  margin: 2.5rem 0 0;
 }
 
-.openings-list li + li {
-  margin-top: 0.25rem;
+.openings-list li {
+  margin: 0;
 }
 
-.openings-list button {
-  background: none;
-  border: 1px solid #666;
-  padding: 0.25rem 0.5rem;
-  width: 100%;
-  text-align: left;
+.openings-list li button {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 140px;
+  background-color: #fff;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  padding: 1rem;
+  text-align: center;
+}
+
+.openings-list li button:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.openings-list li button small {
+  display: block;
+  color: #666;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
 }
