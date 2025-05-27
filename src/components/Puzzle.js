@@ -1,13 +1,37 @@
+// src/components/Puzzle.jsx
 import React from 'react';
 import { Chessboard } from 'react-chessboard';
+import './Puzzle.css';
 
-export default function Puzzle({ position, onDrop, customStyles }) {
+export default function Puzzle({
+                                   puzzleOpening,
+                                   puzzleIdx,
+                                   position,
+                                   onPieceDrop,
+                                   customSquareStyles,
+                                   onBack,
+                                   onNewPuzzle,
+                                   showHint,
+                                   score
+                               }) {
     return (
-        <Chessboard
-            position={position}
-            onPieceDrop={onDrop}
-            customSquareStyles={customStyles}
-            boardWidth={400}
-        />
+        <div className="puzzle-board">
+            <div className="puzzle-header">
+                <button onClick={onBack}>← Back</button>
+                <h2>{puzzleOpening} – Move #{puzzleIdx + 1}</h2>
+                <div className="puzzle-controls">
+                    <button onClick={onNewPuzzle}>New Puzzle</button>
+                    <button onClick={showHint}>Hint</button>
+                    <span className="score">Score: {score}</span>
+                </div>
+            </div>
+            <Chessboard
+                position={position}
+                onPieceDrop={onPieceDrop}
+                customSquareStyles={customSquareStyles}
+                boardWidth={400}
+                orientation="white"
+            />
+        </div>
     );
 }

@@ -8,6 +8,8 @@ import ModeSelector from './components/ModeSelector';
 import SideSelector from './components/SideSelector';
 import DifficultySelector from './components/DifficultySelector';
 import OpeningSelector from './components/OpeningSelector';
+import Trainer from "./components/Trainer";
+import Puzzle from "./components/Puzzle";
 
 const DIFFICULTY_LIVES = {
     Beginner: Infinity,
@@ -95,7 +97,6 @@ export default function App() {
         const sans = OPENINGS[openingName];
         const whiteMoves = sans.map((_, i) => i).filter(i => i % 2 === 0);
         const randIdx = whiteMoves[Math.floor(Math.random() * whiteMoves.length)];
-
         const temp = new Chess();
         for (let i = 0; i < randIdx; i++) {
             try { temp.move(sans[i], { sloppy: true }); } catch {}
@@ -103,7 +104,6 @@ export default function App() {
         const fen = temp.fen();
         const temp2 = new Chess(fen);
         const exp = temp2.move(sans[randIdx], { sloppy: true });
-
         game.reset();
         game.load(fen);
         setPosition(fen);
@@ -115,11 +115,9 @@ export default function App() {
         setShakeSq(null);
         setHighlight({ from: null, to: null });
     }
-
     // Handle drops for both modes
     const onPieceDrop = (source, target) => {
         if (gameOver) return false;
-
         if (mode === "Trainer") {
             // Trainer logic
             if (!selected || awaitingBlack || idx % 2 !== 0 || idx >= moves.length) return false;
@@ -201,56 +199,45 @@ export default function App() {
 
     return (
         <div className="app">
-            <h1>Chess Trainer & Puzzle</h1>
-            <div className="controls">
-                <ModeSelector mode={mode} onChange={setMode} />
-                <DifficultySelector difficulty={difficulty} onChange={setDifficulty} />
-                {/*<SideSelector side={side} onChange={setSide} />*/}
+            <h1>Chess Trainer</h1>
+            <ModeSelector mode={mode} onChange={setMode} />
+            <DifficultySelector difficulty={difficulty} onChange={setDifficulty} />
 
-
-                {/*<label>*/}
-                {/*    Mode:*/}
-                {/*    <select value={mode} onChange={e => setMode(e.target.value)}>*/}
-                {/*        {MODES.map(m => <option key={m} value={m}>{m}</option>)}*/}
-                {/*    </select>*/}
-                {/*</label>*/}
-                {/*<label>*/}
-                {/*    Difficulty:*/}
-                {/*    <select value={difficulty} onChange={e => setDifficulty(e.target.value)}>*/}
-                {/*        {DIFFICULTIES.map(d => <option key={d} value={d}>{d}</option>)}*/}
-                {/*    </select>*/}
-                {/*</label>*/}
-                {mode === "Trainer" ? (
-                    <OpeningSelector
-                        selected={selected}
-                        onSelect={name => initTrainer(name)}
-                    />
-                    // <>
-                    //     <OpeningsList onSelect={name => initTrainer(name)} />
-                    //     <button onClick={() => initTrainer(selected)} disabled={!selected}>Reset Trainer</button>
-                    // </>
-                ) : (
-                    <>
-                        <span>Puzzle: {puzzleOpening} move #{puzzleIdx + 1}</span>
-                        <button onClick={initPuzzle}>New Puzzle</button>
-                        <button onClick={showHint}>Hint</button>
-                        <span>Score: {score}</span>
-                    </>
-                )}
-            </div>
-            <div className="status">
-                {mode === "Trainer" && difficulty !== "Beginner" && <span>Lives: {lives === Infinity ? '∞' : lives}</span>}
-                {mode === "Puzzle" && difficulty !== "Beginner" && <span>Lives: {lives === Infinity ? '∞' : lives}</span>}
-                {gameOver && <span className="game-over">Game Over</span>}
-            </div>
-            <div className="board-container">
-                <Chessboard
+            {mode === "Trainer" && !selected && (
+                <OpeningSelector selected={selected} onSelect={initTrainer} />
+            )}
+            {mode === "Trainer" && selected && (
+                <Trainer
+                    selected={selected}
                     position={position}
                     onPieceDrop={onPieceDrop}
                     customSquareStyles={customSquareStyles}
-                    boardWidth={400}
+                    // orientation={side.toLowerCase()}
+                    onBack={() => initTrainer("")}
                 />
-            </div>
+            )}
+
+            {mode === "Puzzle" && !puzzleOpening && (
+                <div className="puzzle-welcome">
+                    <button onClick={initPuzzle}>Start Puzzle</button>
+                    <button onClick={showHint}>Hint</button>
+
+                </div>
+            )}
+
+            {mode === "Puzzle" && puzzleOpening && (
+                <Puzzle
+                    puzzleOpening={puzzleOpening}
+                    puzzleIdx={puzzleIdx}
+                    position={position}
+                    onPieceDrop={onPieceDrop}
+                    customSquareStyles={customSquareStyles}
+                    onBack={() => setPuzzleOpening("")}
+                    onNewPuzzle={initPuzzle}
+                    showHint={showHint}
+                    score={score}
+                />
+            )}
         </div>
     );
 }

@@ -137,3 +137,63 @@
   margin-top: 0.5rem;
   font-size: 0.8rem;
 }
+/* Puzzle welcome screen */
+.puzzle-welcome {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+.puzzle-welcome button {
+  padding: 0.75rem 1.5rem;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+/* Puzzle board layout */
+.puzzle-board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 2rem;
+}
+
+.puzzle-header {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.puzzle-header button {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+}
+
+.puzzle-header h2 {
+  flex: 1;
+  text-align: center;
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.puzzle-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.puzzle-controls button {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.puzzle-controls .score {
+  font-weight: 600;
+}

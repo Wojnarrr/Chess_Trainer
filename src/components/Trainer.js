@@ -1,13 +1,29 @@
+// src/components/Trainer.jsx
 import React from 'react';
 import { Chessboard } from 'react-chessboard';
+import './Trainer.css';
 
-export default function Trainer({ moves, idx, onDrop, customStyles }) {
+export default function Trainer({
+                                    selected,
+                                    position,
+                                    onPieceDrop,
+                                    customSquareStyles,
+                                    orientation,
+                                    onBack
+                                }) {
     return (
-        <Chessboard
-            position={/* managed in parent */}
-            onPieceDrop={onDrop}
-            customSquareStyles={customStyles}
-            boardWidth={400}
-        />
+        <div className="trainer-board">
+            <div className="trainer-header">
+                <button onClick={onBack}>← Back</button>
+                <h2>{selected}</h2>
+            </div>
+            <Chessboard
+                position={position}
+                onPieceDrop={onPieceDrop}
+                customSquareStyles={customSquareStyles}
+                boardWidth={400}
+                orientation={orientation}
+            />
+        </div>
     );
 }
