@@ -30,7 +30,7 @@ export default function Puzzle({
                 onPieceDrop={onPieceDrop}
                 customSquareStyles={customSquareStyles}
                 boardWidth={400}
-                orientation="white"
+                boardOrientation="white"
             />
         </div>
     );

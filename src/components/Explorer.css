@@ -1,0 +1,87 @@
+/* src/components/Explorer.css */
+
+.explorer-container {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+.explorer-sidebar {
+    width: 220px;
+    background: #fafafa;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 0.5rem;
+    box-sizing: border-box;
+    overflow-y: auto;
+    max-height: calc(100vh - 2rem);
+}
+
+.explorer-sidebar h3 {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 0.25rem;
+}
+
+.explorer-sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.explorer-sidebar li {
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.5rem;
+}
+
+.history-table th,
+.history-table td {
+    border: 1px solid #ccc;
+    padding: 0.25rem;
+    text-align: center;
+    font-size: 0.85rem;
+}
+
+.history-table th {
+    background: #eee;
+}
+
+.explorer-board {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.explorer-header {
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.explorer-controls button {
+    margin-left: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
+    border: 1px solid #ccc;
+    background: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.explorer-controls button:hover {
+    background: #eaeaea;
+}

@@ -22,7 +22,7 @@ export default function Trainer({
                 onPieceDrop={onPieceDrop}
                 customSquareStyles={customSquareStyles}
                 boardWidth={400}
-                orientation={orientation}
+                boardOrientation={orientation}
             />
         </div>
     );

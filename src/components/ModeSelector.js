@@ -3,7 +3,7 @@ import React from 'react';
 import './ModeSelector.css';
 
 export default function ModeSelector({ mode, onChange }) {
-    const MODES = ["Trainer", "Puzzle"];
+    const MODES = ["Trainer", "Puzzle", "Explorer"];
     return (
         <div className="mode-selector">
             {MODES.map((m) => (

@@ -10,6 +10,7 @@ import DifficultySelector from './components/DifficultySelector';
 import OpeningSelector from './components/OpeningSelector';
 import Trainer from "./components/Trainer";
 import Puzzle from "./components/Puzzle";
+import Explorer from './components/Explorer';
 
 const DIFFICULTY_LIVES = {
     Beginner: Infinity,
@@ -23,6 +24,7 @@ export default function App() {
     // Chess instance and board position
     const [game] = useState(() => new Chess());
     const [position, setPosition] = useState(game.fen());
+    const [side, setSide] = useState("White");
 
     // Common state
     const [mode, setMode] = useState("Trainer");
@@ -58,7 +60,11 @@ export default function App() {
     // Hint effect for Trainer mode
     useEffect(() => {
         if (mode !== "Trainer") return;
-        if (idx < moves.length && idx % 2 === 0) {
+        const userTurn =
+            (side === "White" && idx % 2 === 0) ||
+            (side === "Black" && idx % 2 === 1);
+
+        if (idx < moves.length && userTurn) {
             const temp = new Chess();
             for (let i = 0; i < idx; i++) {
                 try { temp.move(moves[i]); } catch {}
@@ -84,6 +90,13 @@ export default function App() {
         game.reset();
         setPosition(game.fen());
         setIdx(0);
+        if (side === "Black" && arr.length) {
+            // Let White (AI) play the very first move
+            game.move(arr[0], { sloppy: true });
+            setPosition(game.fen());
+            setIdx(1);
+        }
+
         setGameOver(false);
         setShakeSq(null);
         setHighlight({ from: null, to: null });
@@ -120,7 +133,14 @@ export default function App() {
         if (gameOver) return false;
         if (mode === "Trainer") {
             // Trainer logic
-            if (!selected || awaitingBlack || idx % 2 !== 0 || idx >= moves.length) return false;
+            if (mode === "Trainer") {
+                // Only allow a drop when it's the user’s turn:
+                const isUsersTurn =
+                    (side === "White" && idx % 2 === 0) ||
+                    (side === "Black" && idx % 2 === 1);
+                if (!selected || awaitingBlack || !isUsersTurn || idx >= moves.length)
+                    return false;
+            }
             const temp = new Chess();
             for (let i = 0; i < idx; i++) try { temp.move(moves[i]); } catch {};
             let exp = null;
@@ -202,7 +222,7 @@ export default function App() {
             <h1>Chess Trainer</h1>
             <ModeSelector mode={mode} onChange={setMode} />
             <DifficultySelector difficulty={difficulty} onChange={setDifficulty} />
-
+            <SideSelector side={side} onChange={setSide} />
             {mode === "Trainer" && !selected && (
                 <OpeningSelector selected={selected} onSelect={initTrainer} />
             )}
@@ -212,7 +232,7 @@ export default function App() {
                     position={position}
                     onPieceDrop={onPieceDrop}
                     customSquareStyles={customSquareStyles}
-                    // orientation={side.toLowerCase()}
+                    orientation={side.toLowerCase()}
                     onBack={() => initTrainer("")}
                 />
             )}
@@ -236,8 +256,17 @@ export default function App() {
                     onNewPuzzle={initPuzzle}
                     showHint={showHint}
                     score={score}
+                    orientation={side.toLowerCase()}
+
                 />
             )}
+            {mode === "Explorer" && (
+                <Explorer
+                    openingMap={OPENINGS}
+                    onBack={() => setMode("Trainer")}
+                />
+            )}
+
         </div>
     );
 }
