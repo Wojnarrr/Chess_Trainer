@@ -1,4 +1,4 @@
-// src/components/Explorer.jsx
+// src/components/Explorer.js
 import React, { useState, useEffect } from 'react';
 import { Chess } from 'chess.js';
 import { Chessboard } from 'react-chessboard';
@@ -129,10 +129,10 @@ export default function Explorer({ openingMap }) {
                 <ul>
                     {candidates.map(([name]) => <li key={name}>{name}</li>)}
                 </ul>
-                <h3>Possible Moves</h3>
-                <ul>
-                    {possibleMoves.map(m => <li key={m}>{m}</li>)}
-                </ul>
+                {/*<h3>Possible Moves</h3>*/}
+                {/*<ul>*/}
+                {/*    {possibleMoves.map(m => <li key={m}>{m}</li>)}*/}
+                {/*</ul>*/}
                 <h3>Move History</h3>
                 <ol>
                     {history.map((m,i) => <li key={i}>{m}</li>)}

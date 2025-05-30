@@ -1,4 +1,4 @@
-// src/components/SideSelector.jsx
+// src/components/SideSelector.js
 import React from 'react';
 
 export default function SideSelector({ side, onChange }) {

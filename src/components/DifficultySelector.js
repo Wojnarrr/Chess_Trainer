@@ -1,4 +1,4 @@
-// src/components/DifficultySelector.jsx
+// src/components/DifficultySelector.js
 import React from 'react';
 
 export default function DifficultySelector({ difficulty, onChange }) {

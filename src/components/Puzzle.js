@@ -1,4 +1,4 @@
-// src/components/Puzzle.jsx
+// src/components/Puzzle.js
 import React from 'react';
 import { Chessboard } from 'react-chessboard';
 import './Puzzle.css';

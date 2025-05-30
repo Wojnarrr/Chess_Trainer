@@ -1,4 +1,4 @@
-// src/components/OpeningSelector.jsx
+// src/components/OpeningSelector.js
 import React from 'react';
 import { OPENING_CATEGORIES } from '../openings';
 import './OpeningSelector.css';

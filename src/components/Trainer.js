@@ -1,4 +1,4 @@
-// src/components/Trainer.jsx
+// src/components/Trainer.js
 import React from 'react';
 import { Chessboard } from 'react-chessboard';
 import './Trainer.css';
