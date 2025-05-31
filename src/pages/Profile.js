@@ -1,85 +1,137 @@
+// client/src/pages/Profile.jsx
 import React, { useState, useEffect } from 'react';
 
 export default function Profile() {
     const [user, setUser] = useState(null);
-    const [username, setUsername] = useState('');
-    const [games, setGames] = useState([]);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        async function fetchProfile() {
-            try {
-                // Fetch current user
-                const meRes = await fetch('http://localhost:4000/api/auth/me', {
-                    credentials: 'include'
-                });
-                if (!meRes.ok) throw new Error('Not authenticated');
-                const meData = await meRes.json();
-                setUser(meData);
+    const [chesscomUsername, setChesscomUsername] = useState('');
+    const [archives, setArchives] = useState([]);
+    const [selectedArchive, setSelectedArchive] = useState('');
+    const [archiveGames, setArchiveGames] = useState([]);
 
-                // // Fetch user games
-                // const gamesRes = await fetch('http://localhost:4000/api/games', {
-                //     credentials: 'include'
-                // });
-                // if (!gamesRes.ok) throw new Error('Failed to fetch games');
-                // const gamesData = await gamesRes.json();
-                // setGames(gamesData);
-                try {
-                    const gamesRes = await fetch('http://localhost:4000/api/games', {
-                        credentials: 'include'
-                    });
-                    if (gamesRes.ok) {
-                        const gamesData = await gamesRes.json();
-                        setGames(gamesData);
-                    } else {
-                        setGames([]);
-                    }
-                } catch {
-                    // no games or network error, show empty list
-                    setGames([]);
-                }
-            } catch (err) {
-                setError(err.message);
+    // Fetch current user on mount
+    useEffect(() => {
+        async function fetchUser() {
+            try {
+                const res = await fetch('http://localhost:4000/api/auth/me', { credentials: 'include' });
+                if (!res.ok) throw new Error('Not authenticated');
+                const data = await res.json();
+                setUser(data);
+            } catch (e) {
+                setError(e.message);
             }
         }
-        fetchProfile();
+        fetchUser();
     }, []);
 
-    const importGames = async () => {
-        const res = await fetch('/api/games/import', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ chesscomUsername: username })
-        });
-        if (res.ok) {
-            const { importedCount } = await res.json();
-            alert(`Imported ${importedCount} games`);
-            // reload games
-            const list = await fetch('/api/games', { credentials: 'include' }).then(r=>r.json());
-            setGames(list);
-        } else {
-            setError((await res.json()).error);
+    // Fetch archives from Chess.com
+    const fetchArchives = async () => {
+        if (!chesscomUsername) return;
+        try {
+            const res = await fetch(
+                `https://api.chess.com/pub/player/${chesscomUsername}/games/archives`
+            );
+            const data = await res.json();
+            setArchives(data.archives || []);
+            setSelectedArchive('');
+            setArchiveGames([]);
+        } catch {
+            setArchives([]);
+        }
+    };
+
+    // Fetch games for the selected archive URL
+    const fetchArchiveGames = async () => {
+        if (!selectedArchive) return;
+        try {
+            const res = await fetch(selectedArchive);
+            const data = await res.json();
+            setArchiveGames(data.games || []);
+        } catch {
+            setArchiveGames([]);
         }
     };
 
     if (error) return <div className="error">{error}</div>;
-    if (!user) return <div>Loading...</div>;
+    if (!user) return <div>Loading profile...</div>;
 
     return (
         <div className="profile-page">
             <h2>Welcome, {user.username}</h2>
-            <button onClick={() => fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).then(()=>window.location='/')}>Logout</button>
-            <div className="import-section">
-                <input value={username} onChange={e=>setUsername(e.target.value)} placeholder="Your Chess.com username" />
-                <button onClick={importGames}>Import Games</button>
-            </div>
-            <h3>Your Games</h3>
-            <ul>
-                {/*{games.map(g => (*/}
-                {/*    <li key={g.gameId}>{new Date(g.date).toLocaleDateString()} – {g.result}</li>*/}
-                {/*))}*/}
-            </ul>
+            <button
+                onClick={async () => {
+                    await fetch('http://localhost:4000/api/auth/logout', {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+                    window.location.href = '/login';
+                }}
+            >
+                Logout
+            </button>
+
+            <section className="archive-import">
+                <h3>Enter Your Chess.com Username</h3>
+                <input
+                    type="text"
+                    value={chesscomUsername}
+                    onChange={e => setChesscomUsername(e.target.value)}
+                    placeholder="Chess.com username"
+                />
+                <button onClick={fetchArchives} disabled={!chesscomUsername}>
+                    Fetch Archives
+                </button>
+
+                {archives.length > 0 && (
+                    <>
+                        <h3>Select Archive</h3>
+                        <select
+                            value={selectedArchive}
+                            onChange={e => setSelectedArchive(e.target.value)}
+                        >
+                            <option value="">— pick a month —</option>
+                            {archives.map(url => (
+                                <option key={url} value={url}>
+                                    {url.split('/').slice(-2).join('/')}
+                                </option>
+                            ))}
+                        </select>
+                        <button
+                            onClick={fetchArchiveGames}
+                            disabled={!selectedArchive}
+                        >
+                            View Games
+                        </button>
+                    </>
+                )}
+            </section>
+
+            <section className="archive-games">
+                <h3>Archive Games</h3>
+                {archiveGames.length === 0 ? (
+                    <p>No games loaded</p>
+                ) : (
+                    <ul>
+                        {archiveGames.map((g, i) => {
+                            const date = new Date(g.end_time * 1000).toLocaleDateString();
+                            const result =
+                                g.white.username.toLowerCase() === chesscomUsername.toLowerCase()
+                                    ? g.white.result
+                                    : g.black.result;
+                            // extract moves from PGN after headers
+                            const idx = g.pgn.indexOf('\n\n');
+                            const moves = idx >= 0 ? g.pgn.substr(idx + 2) : g.pgn;
+                            return (
+                                <li key={i} className="archive-game-item">
+                                    <strong>{date}</strong> — {result}
+                                    <pre className="pgn-moves">{moves}</pre>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                )}
+            </section>
         </div>
     );
 }
