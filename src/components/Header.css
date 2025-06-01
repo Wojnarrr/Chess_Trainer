@@ -1,0 +1,25 @@
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #222;
+    padding: 12px 24px;
+    color: white;
+}
+
+.main-header a {
+    color: white;
+    text-decoration: none;
+    margin: 0 10px;
+    font-weight: 500;
+}
+
+.main-header .logo {
+    font-size: 1.3em;
+    font-weight: bold;
+}
+
+.nav-left, .nav-right {
+    display: flex;
+    align-items: center;
+}

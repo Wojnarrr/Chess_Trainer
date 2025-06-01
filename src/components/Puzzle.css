@@ -1,79 +1,64 @@
-/* src/components/Puzzle.css */
-
-.puzzle-welcome {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin-top: 2rem;
-}
-
-.puzzle-welcome button {
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
-    background-color: #fff;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
-.puzzle-welcome button:hover {
-    background-color: #eaeaea;
-}
-
-/* Puzzle play view */
 .puzzle-board {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 2rem;
+    padding: 2rem 1rem;
 }
 
 .puzzle-header {
     width: 100%;
-    max-width: 400px;
+    max-width: 700px;
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
+    gap: 0.75rem;
     margin-bottom: 1rem;
 }
 
-.puzzle-header button {
-    background: none;
-    border: none;
-    font-size: 1.25rem;
-    cursor: pointer;
-}
-
 .puzzle-header h2 {
-    flex: 1;
+    font-size: 1.4rem;
+    font-weight: 600;
     text-align: center;
     margin: 0;
-    font-size: 1.25rem;
+    color: #333;
+}
+
+.puzzle-header button {
+    align-self: flex-start;
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    cursor: pointer;
+    color: #007acc;
 }
 
 .puzzle-controls {
     display: flex;
+    justify-content: center;
     align-items: center;
-    gap: 0.5rem;
+    gap: 1rem;
+    flex-wrap: wrap;
 }
 
 .puzzle-controls button {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.9rem;
-    background-color: #fff;
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+    background-color: #f9f9f9;
     border: 1px solid #ccc;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
     transition: background-color 0.2s ease;
+    font-weight: 500;
 }
 
 .puzzle-controls button:hover {
-    background-color: #eaeaea;
+    background-color: #e6f0fa;
 }
 
 .puzzle-controls .score {
+    font-size: 1rem;
     font-weight: 600;
+    color: #444;
+    padding: 0.25rem 0.5rem;
+    border-left: 2px solid #ccc;
 }

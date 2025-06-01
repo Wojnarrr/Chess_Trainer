@@ -25,13 +25,16 @@ export default function Puzzle({
                     <span className="score">Score: {score}</span>
                 </div>
             </div>
-            <Chessboard
-                position={position}
-                onPieceDrop={onPieceDrop}
-                customSquareStyles={customSquareStyles}
-                boardWidth={400}
-                boardOrientation="white"
-            />
+            <div className="puzzle-board-container">
+                <Chessboard
+                    position={position}
+                    onPieceDrop={onPieceDrop}
+                    customSquareStyles={customSquareStyles}
+                    boardWidth={400}
+                    boardOrientation="white"
+                />
+            </div>
         </div>
+
     );
 }

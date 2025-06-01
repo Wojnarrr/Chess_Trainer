@@ -134,9 +134,18 @@ export default function Explorer({ openingMap }) {
                 {/*    {possibleMoves.map(m => <li key={m}>{m}</li>)}*/}
                 {/*</ul>*/}
                 <h3>Move History</h3>
-                <ol>
-                    {history.map((m,i) => <li key={i}>{m}</li>)}
-                </ol>
+                <table className="history-table">
+                    <tbody>
+                    {Array.from({ length: Math.ceil(history.length / 2) }, (_, i) => (
+                        <tr key={i}>
+                            <td>{`${i + 1}.`}</td>
+                            <td>{history[2 * i] || ""}</td>
+                            <td>{history[2 * i + 1] || ""}</td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
+
             </div>
             <div className="explorer-board">
                 <div className="explorer-header">
