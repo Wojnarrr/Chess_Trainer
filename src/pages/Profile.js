@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Chess } from 'chess.js';
 import './Profile.css';
+import MistakePreview from "../components/MistakePreview";
 
 export default function Profile() {
     const [user, setUser] = useState(null);
@@ -21,6 +22,7 @@ export default function Profile() {
     // Mistake candidates for archive games
     const [mistakesArchive, setMistakesArchive] = useState([]);
     const [analyzingArchive, setAnalyzingArchive] = useState(false);
+    const [selectedMistake, setSelectedMistake] = useState(null);
 
     // On mount: fetch user profile & stored games
     useEffect(() => {
@@ -50,36 +52,22 @@ export default function Profile() {
         }
         fetchProfileAndGames();
     }, []);
-
     function cleanChessComPgn(rawPgn) {
         if (!rawPgn) return '';
 
-        // 1. Remove all clock/comments: {...}
-        let cleaned = rawPgn.replace(/\{[^}]*\}/g, '');
+        let cleaned = rawPgn.replace(/\{[^}]*\}/g, ''); // remove {...}
+        cleaned = cleaned.replace(/\[.*?"[^"]*"\]/g, ''); // remove headers
+        cleaned = cleaned.replace(/\d+\.\.\./g, ''); // remove 1...
+        cleaned = cleaned.replace(/\s+/g, ' '); // collapse whitespace
+        cleaned = cleaned.replace(/(\d+)\. /g, '$1.'); // fix "1. e4" → "1.e4"
 
-        // 2. Extract headers
-        const headerMatches = [...cleaned.matchAll(/\[.*?"[^"]*"\]/g)];
-        const headers = headerMatches.map((match) => match[0]);
-
-        // 3. Remove headers from original PGN
-        cleaned = cleaned.replace(/\[.*?"[^"]*"\]/g, '').trim();
-
-        // 4. Remove "1..." black move numbers
-        cleaned = cleaned.replace(/\d+\.\.\./g, '');
-
-        // 5. Convert `1. e4` → `1.e4`, normalize spacing
-        cleaned = cleaned
-            .replace(/\s+/g, ' ')         // collapse all whitespace
-            .replace(/(\d+)\. /g, '$1.')  // fix `1. e4` → `1.e4`
-
-        // 6. Break move text into lines every 6 moves (approx)
         const moveTokens = cleaned.trim().split(' ');
         const moveLines = [];
         for (let i = 0; i < moveTokens.length; i += 12) {
             moveLines.push(moveTokens.slice(i, i + 12).join(' '));
         }
 
-        return headers.join('\n') + '\n\n' + moveLines.join('\n') + '\n';
+        return moveLines.join('\n');
     }
 
 
@@ -115,7 +103,8 @@ export default function Profile() {
             const formatted = rawGames.map((g, idx) => {
                 const rawPgn = g.pgn || '';
                 const trimmedPgn = rawPgn.trim();
-                // Log the first few PGNs so we can inspect if any are malformed
+                const userIsWhite = g.white.username.toLowerCase() === chesscomUsername.toLowerCase();
+
                 if (idx < 3) {
                     if (!rawPgn) {
                         console.warn(`[Profile] PGN missing for game ${g.url}`);
@@ -123,16 +112,16 @@ export default function Profile() {
                         console.log(`[Profile] Sample PGN for game ${g.url}:\n${trimmedPgn.slice(0, 200)}...`);
                     }
                 }
+
                 return {
                     gameId: g.url,
                     pgn: trimmedPgn,
-                    result:
-                        g.white.username.toLowerCase() === chesscomUsername.toLowerCase()
-                            ? g.white.result
-                            : g.black.result,
+                    result: userIsWhite ? g.white.result : g.black.result,
                     date: new Date(g.end_time * 1000),
+                    isWhite: userIsWhite, // ✅ Add this
                 };
             });
+
 
             setArchiveGames(formatted);
         } catch (err) {
@@ -141,24 +130,112 @@ export default function Profile() {
         }
     };
 
-    // Analyze mistakes in archive games (with loadPgn instead of load_pgn)
+    // // Analyze mistakes in archive games (with loadPgn instead of load_pgn)
+    // const analyzeArchiveMistakes = async () => {
+    //     if (archiveGames.length === 0) {
+    //         console.log('[Profile] No archive games to analyze.');
+    //         return;
+    //     }
+    //     console.log('[Profile] Starting analysis on archive games...');
+    //     setAnalyzingArchive(true);
+    //     const allMistakes = [];
+    //
+    //     for (const gameObj of archiveGames) {
+    //         const { gameId, date, pgn } = gameObj;
+    //         console.log(`[Profile] Analyzing archive game ${gameId}, date ${date.toLocaleDateString()}`);
+    //         // First normalize:
+    //         const cleaned = cleanChessComPgn(pgn);
+    //         console.log('[PGN] Final cleaned output:\n' + cleaned);
+    //         // Then load the cleaned PGN
+    //         const chess = new Chess();
+    //         try {
+    //             const loaded = chess.loadPgn(cleaned);
+    //             if (!loaded) {
+    //                 console.warn('⚠️ PGN failed to load:', gameId);
+    //                 console.warn(cleaned);
+    //             }
+    //         } catch (err) {
+    //             console.error('❌ Exception while loading PGN:', err);
+    //         }
+    //         const history = chess.history({ verbose: true });
+    //         chess.reset();
+    //
+    //         for (let ply = 0; ply < history.length; ply++) {
+    //             const fenBefore = chess.fen();
+    //             const actualMoveObj = history[ply];
+    //             const actualSan = actualMoveObj.san;
+    //             console.log(`  [ARCH] Ply ${ply + 1}, actual move: ${actualSan}, FEN: ${fenBefore}`);
+    //
+    //             try {
+    //                 const analyzeRes = await fetch('http://localhost:4000/api/analyze', {
+    //                     method: 'POST',
+    //                     headers: { 'Content-Type': 'application/json' },
+    //                     body: JSON.stringify({ fen: fenBefore, depth: 12 }),
+    //                 });
+    //                 if (!analyzeRes.ok) {
+    //                     console.warn(`[ARCH] Analyze API returned ${analyzeRes.status} for FEN ${fenBefore}`);
+    //                     chess.move(actualSan, { sloppy: true });
+    //                     continue;
+    //                 }
+    //                 const analyzeData = await analyzeRes.json();
+    //                 let bestMoveSAN = null;
+    //                 if (Array.isArray(analyzeData)) {
+    //                     const best = analyzeData.find((m) => m.type === 'bestmove');
+    //                     bestMoveSAN = best ? best.san : analyzeData[analyzeData.length - 1].san;
+    //                 } else {
+    //                     bestMoveSAN = analyzeData.san;
+    //                 }
+    //                 console.log(`    [ARCH] Best move SAN: ${bestMoveSAN}`);
+    //
+    //                 if (bestMoveSAN && bestMoveSAN !== actualSan) {
+    //                     console.log(`    [ARCH] Mistake detected: actual ${actualSan}, best ${bestMoveSAN}`);
+    //                     allMistakes.push({
+    //                         gameId,
+    //                         date,
+    //                         moveNumber: Math.floor(ply / 2) + 1,
+    //                         ply: ply + 1,
+    //                         actualSan,
+    //                         bestSan: bestMoveSAN,
+    //                     });
+    //                 }
+    //             } catch (err) {
+    //                 console.error(`[ARCH] Error during analysis of ply ${ply + 1}:`, err);
+    //             }
+    //
+    //             chess.move(actualSan, { sloppy: true });
+    //         }
+    //     }
+    //
+    //     setMistakesArchive(allMistakes);
+    //     setAnalyzingArchive(false);
+    //     console.log(`[Profile] Completed analysis on archive games. Found ${allMistakes.length} mistakes.`);
+    // };
     const analyzeArchiveMistakes = async () => {
         if (archiveGames.length === 0) {
             console.log('[Profile] No archive games to analyze.');
             return;
         }
+
         console.log('[Profile] Starting analysis on archive games...');
         setAnalyzingArchive(true);
         const allMistakes = [];
 
         for (const gameObj of archiveGames) {
-            const { gameId, date, pgn } = gameObj;
-            console.log(`[Profile] Analyzing archive game ${gameId}, date ${date.toLocaleDateString()}`);
-            // First normalize:
+            const { gameId, date, pgn, isWhite } = gameObj;
             const cleaned = cleanChessComPgn(pgn);
-            console.log('[PGN] Final cleaned output:\n' + cleaned);
-            // Then load the cleaned PGN
+            console.log(`[PGN] Final cleaned output for game ${gameId}:\n${cleaned}`);
+
             const chess = new Chess();
+            // try {
+            //     const loaded = chess.loadPgn(cleaned);
+            //     if (!loaded) {
+            //         console.warn('⚠️ PGN failed to load:', gameId);
+            //         continue;
+            //     }
+            // } catch (err) {
+            //     console.error('❌ Exception while loading PGN:', err);
+            //     continue;
+            // }
             try {
                 const loaded = chess.loadPgn(cleaned);
                 if (!loaded) {
@@ -172,55 +249,65 @@ export default function Profile() {
             chess.reset();
 
             for (let ply = 0; ply < history.length; ply++) {
+                const actualMove = history[ply];
+                const actualSan = actualMove.san;
+
+                const isUsersMove = (isWhite && ply % 2 === 0) || (!isWhite && ply % 2 === 1);
                 const fenBefore = chess.fen();
-                const actualMoveObj = history[ply];
-                const actualSan = actualMoveObj.san;
-                console.log(`  [ARCH] Ply ${ply + 1}, actual move: ${actualSan}, FEN: ${fenBefore}`);
+
+                if (!isUsersMove) {
+                    chess.move(actualSan, { sloppy: true });
+                    continue;
+                }
+
+                console.log(`  [ARCH] Ply ${ply + 1}, user move: ${actualSan}, FEN: ${fenBefore}`);
 
                 try {
-                    const analyzeRes = await fetch('http://localhost:4000/api/analyze', {
+                    const res = await fetch('http://localhost:4000/api/analyze', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ fen: fenBefore, depth: 12 }),
+                        body: JSON.stringify({ fen: fenBefore, actualSan }),
                     });
-                    if (!analyzeRes.ok) {
-                        console.warn(`[ARCH] Analyze API returned ${analyzeRes.status} for FEN ${fenBefore}`);
+
+                    if (!res.ok) {
+                        console.warn(`[ARCH] Analyze API error at ply ${ply + 1}`);
                         chess.move(actualSan, { sloppy: true });
                         continue;
                     }
-                    const analyzeData = await analyzeRes.json();
-                    let bestMoveSAN = null;
-                    if (Array.isArray(analyzeData)) {
-                        const best = analyzeData.find((m) => m.type === 'bestmove');
-                        bestMoveSAN = best ? best.san : analyzeData[analyzeData.length - 1].san;
-                    } else {
-                        bestMoveSAN = analyzeData.san;
-                    }
-                    console.log(`    [ARCH] Best move SAN: ${bestMoveSAN}`);
 
-                    if (bestMoveSAN && bestMoveSAN !== actualSan) {
-                        console.log(`    [ARCH] Mistake detected: actual ${actualSan}, best ${bestMoveSAN}`);
+                    const data = await res.json();
+                    const { evalBefore, evalAfter, evalDrop, bestSan, isBlunder } = data;
+
+                    if (isBlunder) {
+                        console.log(`  ⚠️ Mistake detected! ${actualSan} vs ${bestSan} (Δ: ${evalDrop})`);
                         allMistakes.push({
                             gameId,
                             date,
-                            moveNumber: Math.floor(ply / 2) + 1,
                             ply: ply + 1,
+                            moveNumber: Math.floor(ply / 2) + 1,
                             actualSan,
-                            bestSan: bestMoveSAN,
+                            bestSan,
+                            evalBefore,
+                            evalAfter,
+                            evalDrop,
                         });
                     }
+
                 } catch (err) {
-                    console.error(`[ARCH] Error during analysis of ply ${ply + 1}:`, err);
+                    console.error(`[ARCH] Error analyzing ply ${ply + 1}:`, err);
                 }
 
                 chess.move(actualSan, { sloppy: true });
             }
+
+
         }
 
         setMistakesArchive(allMistakes);
         setAnalyzingArchive(false);
-        console.log(`[Profile] Completed analysis on archive games. Found ${allMistakes.length} mistakes.`);
+        console.log(`[Profile] Done analyzing archive games. Found ${allMistakes.length} mistake candidates.`);
     };
+
 
     // Analyze mistakes in stored (DB) games (also switch load_pgn → loadPgn)
     const analyzeDBMistakes = async () => {
@@ -463,6 +550,7 @@ export default function Profile() {
                             <th>Move #</th>
                             <th>Actual Move</th>
                             <th>Engine’s Best</th>
+
                         </tr>
                         </thead>
                         <tbody>
@@ -472,12 +560,27 @@ export default function Profile() {
                                 <td>{m.moveNumber}</td>
                                 <td>{m.actualSan}</td>
                                 <td>{m.bestSan}</td>
+                                <td>
+                                    <button onClick={() => setSelectedMistake(m)}>Preview</button>
+                                </td>
+
                             </tr>
                         ))}
                         </tbody>
                     </table>
                 </section>
             )}
+            {selectedMistake && (
+                <section className="mistake-preview">
+                    <h3>Mistake Preview</h3>
+                    <MistakePreview
+                        game={archiveGames.find(g => g.gameId === selectedMistake.gameId)}
+                        mistake={selectedMistake}
+                        onClose={() => setSelectedMistake(null)}
+                    />
+                </section>
+            )}
+
         </div>
     );
 }
