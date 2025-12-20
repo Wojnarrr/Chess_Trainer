@@ -1,11 +1,11 @@
 // src/components/ModeSelector.js
 import React from 'react';
-import './ModeSelector.css';
+import '../../styles/SelectorGroup.css';
 
 export default function ModeSelector({ mode, onChange }) {
     const MODES = ["Trainer", "Puzzle", "Explorer"];
     return (
-        <div className="mode-selector">
+        <div className="option-selector">
             {MODES.map((m) => (
                 <button
                     key={m}

@@ -1,7 +1,7 @@
 // src/components/Trainer.js
 import React from 'react';
 import { Chessboard } from 'react-chessboard';
-import './Trainer.css';
+import '../styles/Trainer.css';
 
 export default function Trainer({
                                     selected,
@@ -25,13 +25,15 @@ export default function Trainer({
 
             <div className="trainer-content">
                 <div className="board-column">
-                    <Chessboard
-                        position={position}
-                        onPieceDrop={onPieceDrop}
-                        customSquareStyles={customSquareStyles}
-                        boardWidth={400}
-                        boardOrientation={orientation}
-                    />
+                    <div className="styled-board-container">
+                        <Chessboard
+                            position={position}
+                            onPieceDrop={onPieceDrop}
+                            customSquareStyles={customSquareStyles}
+                            boardWidth={400}
+                            boardOrientation={orientation}
+                        />
+                    </div>
                     <div className="move-controls">
                         <button onClick={onPrev} disabled={!canGoBack}>← Previous</button>
                         <button onClick={onNext} disabled={!canGoForward}>Next →</button>

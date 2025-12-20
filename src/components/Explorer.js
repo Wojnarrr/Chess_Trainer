@@ -1,29 +1,31 @@
-// src/components/Explorer.js
 import React, { useState, useEffect } from 'react';
 import { Chess } from 'chess.js';
 import { Chessboard } from 'react-chessboard';
-import './Explorer.css';
+import '../styles/Explorer.css';
 
 export default function Explorer({ openingMap }) {
     const [game] = useState(() => new Chess());
     const [position, setPosition] = useState(game.fen());
-
-    // Candidates and history
     const [candidates, setCandidates] = useState([]); // [[name, moves], ...]
-    const [history, setHistory] = useState([]);         // array of SANs
-    const [idx, setIdx] = useState(0);                   // next ply index
-
-    // UI state
+    const [history, setHistory] = useState([]);
+    const [idx, setIdx] = useState(0);
     const [shakeSq, setShakeSq] = useState(null);
     const [hintSquares, setHintSquares] = useState([]);
     const [sequenceOver, setSequenceOver] = useState(false);
     const [lastSequence, setLastSequence] = useState(null);
+    const [activeCandidates, setActiveCandidates] = useState(new Set());
 
-    // Initialize or restart Explorer
+    useEffect(() => {
+        const all = Object.keys(openingMap);
+        setActiveCandidates(new Set(all));
+    }, [openingMap]);
+
+
     const initExplorer = () => {
         game.reset();
         setPosition(game.fen());
-        setCandidates(Object.entries(openingMap));
+        const filtered = Object.entries(openingMap).filter(([name]) => activeCandidates.has(name));
+        setCandidates(filtered);
         setHistory([]);
         setIdx(0);
         setShakeSq(null);
@@ -32,11 +34,10 @@ export default function Explorer({ openingMap }) {
         setLastSequence(null);
     };
 
-    // Handle user and computer moves
+
     const onPieceDrop = (source, target) => {
         if (sequenceOver) return false;
 
-        // Attempt user move
         const temp = new Chess(game.fen());
         let moveObj;
         try { moveObj = temp.move({ from: source, to: target, promotion: 'q' }); }
@@ -48,7 +49,6 @@ export default function Explorer({ openingMap }) {
         }
         const san = moveObj.san;
 
-        // Filter openings by user SAN
         const userFiltered = candidates.filter(([, moves]) => moves[idx] === san);
         if (userFiltered.length === 0) {
             setShakeSq(source);
@@ -56,7 +56,6 @@ export default function Explorer({ openingMap }) {
             return false;
         }
 
-        // Apply user move
         game.move({ from: source, to: target, promotion: 'q' });
         setPosition(game.fen());
         setHistory(h => [...h, san]);
@@ -64,7 +63,6 @@ export default function Explorer({ openingMap }) {
         setIdx(newIdx);
         setCandidates(userFiltered);
 
-        // If only one opening remains and no reply, finish
         const possibleReplies = [...new Set(
             userFiltered.map(([, moves]) => moves[newIdx]).filter(Boolean)
         )];
@@ -75,7 +73,6 @@ export default function Explorer({ openingMap }) {
             return true;
         }
 
-        // Randomly pick a reply
         const replySan = possibleReplies[Math.floor(Math.random() * possibleReplies.length)];
         setTimeout(() => {
             game.move(replySan, { sloppy: true });
@@ -83,7 +80,6 @@ export default function Explorer({ openingMap }) {
             setHistory(h => [...h, replySan]);
             const nextIdx = newIdx + 1;
             setIdx(nextIdx);
-            // Filter candidates by replySan
             const post = userFiltered.filter(([, moves]) => moves[newIdx] === replySan);
             setCandidates(post);
             if (post.length === 1 && !post[0][1][nextIdx]) {
@@ -96,7 +92,6 @@ export default function Explorer({ openingMap }) {
         return true;
     };
 
-    // Auto-complete remaining moves
     const autoComplete = (moves) => {
         for (let i = idx + 1; i < moves.length; i++) {
             try { game.move(moves[i], { sloppy: true }); } catch {}
@@ -104,65 +99,99 @@ export default function Explorer({ openingMap }) {
         setPosition(game.fen());
     };
 
-    // Hint user moves
     const onHint = () => {
-        const legal = game.moves({ verbose: true });
-        const dests = [...new Set(legal.map(m => m.to))];
-        setHintSquares(dests);
+        const expectedSANs = [...new Set(
+            candidates.map(([, moves]) => moves[idx]).filter(Boolean)
+        )];
+
+        const legalMoves = game.moves({ verbose: true });
+        const dests = legalMoves
+            .filter(m => expectedSANs.includes(m.san))
+            .map(m => m.to);
+
+        setHintSquares([...new Set(dests)]);
         setTimeout(() => setHintSquares([]), 1000);
     };
 
-    // Possible user moves list
-    const possibleMoves = game.moves();
+    const toggleCandidate = (name) => {
+        setActiveCandidates(prev => {
+            const next = new Set(prev);
+            if (next.has(name)) next.delete(name);
+            else next.add(name);
+            return next;
+        });
+    };
 
     const customSquareStyles = {
         ...(shakeSq && { [shakeSq]: { animation: 'shake 0.5s ease' } }),
         ...hintSquares.reduce((s, sq) => ({ ...s, [sq]: { backgroundColor: 'rgba(0,255,0,0.4)' } }), {})
     };
 
-    useEffect(initExplorer, []);
+    useEffect(() => {
+        initExplorer();
+    }, [activeCandidates]);
 
     return (
-        <div className="explorer-container">
-            <div className="explorer-sidebar">
-                <h3>Candidates ({candidates.length})</h3>
-                <ul>
-                    {candidates.map(([name]) => <li key={name}>{name}</li>)}
-                </ul>
-                {/*<h3>Possible Moves</h3>*/}
-                {/*<ul>*/}
-                {/*    {possibleMoves.map(m => <li key={m}>{m}</li>)}*/}
-                {/*</ul>*/}
-                <h3>Move History</h3>
-                <table className="history-table">
-                    <tbody>
-                    {Array.from({ length: Math.ceil(history.length / 2) }, (_, i) => (
-                        <tr key={i}>
-                            <td>{`${i + 1}.`}</td>
-                            <td>{history[2 * i] || ""}</td>
-                            <td>{history[2 * i + 1] || ""}</td>
-                        </tr>
-                    ))}
-                    </tbody>
-                </table>
-
+        <div className="trainer-board">
+            <div className="trainer-header">
+                <button onClick={initExplorer}>↺ Restart</button>
+                <h2>{sequenceOver ? `Over: ${lastSequence}` : 'Explorer Mode'}</h2>
+                <button onClick={onHint}>Hint</button>
             </div>
-            <div className="explorer-board">
-                <div className="explorer-header">
-                    <h2>{sequenceOver ? `Over: ${lastSequence}` : 'Explorer Mode'}</h2>
-                    <div className="explorer-controls">
-                        <button onClick={initExplorer}>Restart</button>
-                        <button onClick={onHint}>Hint</button>
+
+            <div className="trainer-content">
+                <div className="board-history-row">
+                    <div className="board-column">
+                        <div className="styled-board-container">
+                            <Chessboard
+                                position={position}
+                                onPieceDrop={onPieceDrop}
+                                customSquareStyles={customSquareStyles}
+                                boardWidth={400}
+                            />
+                        </div>
+                    </div>
+                    <div className="candidate-box">
+                        <h4>Candidate Openings ({Object.keys(openingMap).length})</h4>
+                        <div className="candidate-toggle-list">
+                            {Object.keys(openingMap).map(name => (
+                                <label key={name}>
+                                    <input
+                                        type="checkbox"
+                                        checked={activeCandidates.has(name)}
+                                        onChange={() => toggleCandidate(name)}
+                                    />
+                                    {name}
+                                </label>
+                            ))}
+                        </div>
                     </div>
                 </div>
-                <Chessboard
-                    position={position}
-                    onPieceDrop={onPieceDrop}
-                    customSquareStyles={customSquareStyles}
-                    boardWidth={400}
-                    boardOrientation="white"
-                />
+                <div className="move-history-box">
+                    <h4>Move History</h4>
+                    <table className="move-history-table">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>White</th>
+                            <th>Black</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {Array.from({ length: Math.ceil(history.length / 2) }).map((_, i) => (
+                            <tr key={i}>
+                                <td>{i + 1}.</td>
+                                <td>{history[i * 2] || ''}</td>
+                                <td>{history[i * 2 + 1] || ''}</td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </table>
+                </div>
+
             </div>
+
+
         </div>
     );
 }

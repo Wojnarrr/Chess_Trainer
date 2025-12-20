@@ -7,6 +7,8 @@ import Register from './pages/Register';
 import Profile from './pages/Profile';
 import OpeningsPage from './pages/OpeningsPage';
 import BotGame from './pages/BotGame';
+import MistakePuzzle from './pages/MistakePuzzle';
+import PlayerLookup from "./pages/PlayerLookup";
 
 export default function AppRouter() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -30,7 +32,11 @@ export default function AppRouter() {
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/openings" element={<OpeningsPage />} />
                     <Route path="/bot" element={<BotGame />} />
+                    <Route path="/puzzle-mode" element={<MistakePuzzle />} />
+                    <Route path="/lookup" element={<PlayerLookup />} />
+
                     <Route path="*" element={<Navigate to="/" />} />
+
                 </Routes>
             </div>
         </BrowserRouter>

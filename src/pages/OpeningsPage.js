@@ -2,10 +2,10 @@
 import React, { useState, useEffect } from "react";
 import { Chess } from "chess.js";
 import { OPENINGS } from "../openings";
-import ModeSelector from '../components/ModeSelector';
-import SideSelector from '../components/SideSelector';
-import DifficultySelector from '../components/DifficultySelector';
-import OpeningSelector from '../components/OpeningSelector';
+import ModeSelector from '../components/selectors/ModeSelector';
+import SideSelector from '../components/selectors/SideSelector';
+import DifficultySelector from '../components/selectors/DifficultySelector';
+import OpeningSelector from '../components/selectors/OpeningSelector';
 import Trainer from "../components/Trainer";
 import Puzzle from "../components/Puzzle";
 import Explorer from '../components/Explorer';
@@ -212,14 +212,22 @@ export default function OpeningsPage() {
     };
     return (
         <div className="app">
-            <h1>Chess Trainer</h1>
-            <ModeSelector mode={mode} onChange={setMode} />
-            <DifficultySelector difficulty={difficulty} onChange={setDifficulty} />
-            <SideSelector side={side} onChange={setSide} />
+            <h1>Openings Training</h1>
+
+            <div className="openings-controls-box">
+                <ModeSelector mode={mode} onChange={setMode} />
+                {mode === "Trainer" && !selected && (
+                    <>
+                        <DifficultySelector difficulty={difficulty} onChange={setDifficulty} />
+                        <SideSelector side={side} onChange={setSide} />
+                    </>
+                )}
+            </div>
 
             {mode === "Trainer" && !selected && (
                 <OpeningSelector selected={selected} onSelect={initTrainer} />
             )}
+
             {mode === "Trainer" && selected && (
                 <Trainer
                     selected={selected}
@@ -234,8 +242,8 @@ export default function OpeningsPage() {
                     canGoBack={difficulty === "Beginner" && idx > 0}
                     canGoForward={difficulty === "Beginner" && idx < moves.length}
                 />
-
             )}
+
             {mode === "Puzzle" && puzzleOpening && (
                 <Puzzle
                     puzzleOpening={puzzleOpening}
@@ -250,6 +258,7 @@ export default function OpeningsPage() {
                     orientation={side.toLowerCase()}
                 />
             )}
+
             {mode === "Explorer" && (
                 <Explorer
                     openingMap={OPENINGS}
@@ -258,4 +267,5 @@ export default function OpeningsPage() {
             )}
         </div>
     );
+
 }

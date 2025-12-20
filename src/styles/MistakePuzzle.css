@@ -1,0 +1,74 @@
+/* src/pages/MistakePuzzle.css */
+
+.mistake-puzzle-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+    background-color: #f9f9f9;
+    min-height: 100vh;
+}
+
+.mistake-puzzle-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.mistake-puzzle-header h2 {
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.score-line {
+    margin: 0.25rem 0;
+    font-size: 1.1rem;
+    color: #555;
+}
+
+.mistake-text {
+    color: #c0392b;
+    font-weight: bold;
+    background-color: #fbeaea;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.status-message {
+    margin-top: 1rem;
+    font-size: 1rem;
+    color: #444;
+    background-color: #fff3cd;
+    padding: 0.5rem 1rem;
+    border: 1px solid #ffeeba;
+    border-radius: 6px;
+}
+
+.puzzle-controls {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.puzzle-controls button {
+    padding: 0.6rem 1.2rem;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.puzzle-controls button:hover {
+    background-color: #0056b3;
+}
+
+.puzzle-controls p {
+    margin-top: 0.5rem;
+    font-size: 1.1rem;
+    color: #333;
+}

@@ -1,7 +1,7 @@
 // src/components/Puzzle.js
 import React from 'react';
 import { Chessboard } from 'react-chessboard';
-import './Puzzle.css';
+import '../styles/Puzzle.css';
 
 export default function Puzzle({
                                    puzzleOpening,
@@ -25,7 +25,7 @@ export default function Puzzle({
                     <span className="score">Score: {score}</span>
                 </div>
             </div>
-            <div className="puzzle-board-container">
+            <div className="styled-board-container">
                 <Chessboard
                     position={position}
                     onPieceDrop={onPieceDrop}

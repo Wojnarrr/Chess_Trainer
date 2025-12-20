@@ -1,12 +1,11 @@
 // src/components/OpeningSelector.js
 import React from 'react';
-import { OPENING_CATEGORIES } from '../openings';
-import './OpeningSelector.css';
+import { OPENING_CATEGORIES } from '../../openings';
+import '../../styles/OpeningSelector.css';
 
 export default function OpeningSelector({ selected, onSelect }) {
     return (
         <div className="opening-selector">
-            <button className="sort-button">Sort</button>
             {Object.entries(OPENING_CATEGORIES).map(([categoryName, openers]) => (
                 <div key={categoryName} className="category-section">
                     <h3 className="category-title">{categoryName}</h3>
@@ -21,6 +20,7 @@ export default function OpeningSelector({ selected, onSelect }) {
                                         >
                                             <span className="opening-name">{openingName}</span>
                                             <small className="opening-count">{data.length} plies</small>
+
                                         </button>
                                     </li>
                                 );
