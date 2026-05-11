@@ -1,76 +1,225 @@
-# Chess Trainer and Puzzle Web Application
+# Chess Trainer
 
-BSc (Hons) Computing Science – Final Year Dissertation
-##Abstract
-This repository contains the implementation of a web-based chess training platform developed as part of a Final Year Dissertation for the BSc (Hons) in Computing Science. The project focuses on the creation of a personalised chess training system that generates interactive puzzles derived from real player mistakes, identified through chess engine analysis of archived games
+## Overview
 
-## Features
+Chess Trainer is a full-stack chess learning platform designed to help players improve through interactive training, automated game analysis, and personalized puzzle generation.
 
-- **Mistake-Based Puzzle Generation**
-  - Analyses real chess games using the Stockfish engine
-  - Detects mistakes based on significant evaluation drops
-  - Converts detected mistakes into interactive training puzzles
+The application combines opening training, game exploration, AI-assisted analysis, and mistake-based puzzle solving into a single platform. Using the Stockfish chess engine, the system evaluates games, identifies critical mistakes, and converts them into training opportunities tailored to the player.
 
-- **Puzzle Mode**
-  - Presents positions occurring before a recorded mistake
-  - Users attempt to find a stronger alternative move
-  - Answers are scored based on evaluation improvement rather than exact move matching
-
-- **Openings Trainer**
-  - Interactive opening practice and exploration
-  - Guided move progression with validation
-
-- **Chess.com Integration**
-  - Imports player game archives
-  - Analyses games and extracts training data automatically
-
-- **User Accounts**
-  - Authentication and profile management
-  - Persistent storage of generated puzzles (extensible)
+The project was developed to bridge the gap between playing games and structured improvement by allowing users to train directly from their own mistakes and game history.
 
 ---
 
-## Technical Highlights
+# Features
 
-- Chess engine integration using Stockfish via Node.js child processes
-- Custom mistake detection logic based on evaluation thresholds
-- RESTful API design
-- Modular React frontend architecture
-- MongoDB data modelling for training content
+## Opening Trainer
+- Practice opening repertoires interactively
+- Reinforce move sequences through repetition
+- Improve opening memorization and pattern recognition
+
+## Opening Explorer
+- Explore opening variations and continuations
+- Navigate through move trees on an interactive chessboard
+- Study different opening lines and positions
+
+## Puzzle Mode
+- Solve puzzles generated from real player mistakes
+- Train using positions extracted from analyzed games
+- Improve tactical awareness and decision making
+
+## Bot Game Mode
+- Play against AI-controlled opponents
+- Interactive move navigation and move history tracking
+- Configurable difficulty system planned for future expansion
+
+## Game Analysis
+- Import and analyze Chess.com games
+- Move-by-move evaluation using Stockfish
+- Position evaluation using centipawn analysis
+
+## Automated Mistake Detection
+- Detect inaccuracies, mistakes, and blunders automatically
+- Identify critical evaluation drops during games
+- Store important training positions for puzzle generation
+
+## Player Lookup
+- Search public Chess.com usernames
+- Load and review player game archives
+- Analyze games directly within the application
+
+## Interactive Chessboard System
+- Move highlighting
+- Board navigation controls
+- Position replay functionality
+- Interactive move history display
+
+## User Profiles
+- Save player information
+- Store generated puzzle candidates
+- Maintain personalized training data
 
 ---
-## Tech Stack
 
-**Frontend**
+# Game Modes
+
+| Mode | Description |
+|------|-------------|
+| Trainer | Practice chess openings interactively |
+| Explorer | Explore opening variations and move trees |
+| Puzzle | Solve mistake-based training puzzles |
+| Bot Game | Play against AI opponents |
+| Analysis | Analyze games using Stockfish |
+| Player Lookup | Search and analyze Chess.com users |
+
+---
+
+# System Architecture
+
+```text
+Frontend (React)
+    ↓
+Backend (Node.js + Express)
+    ↓
+Stockfish Engine (Child Process)
+    ↓
+MongoDB Database
+```
+
+## Architecture Components
+
+### Frontend
+- React
+- React Router
+- Chessboard UI integration
+
+### Backend
+- Node.js
+- Express.js REST API
+
+### Chess Engine
+- Stockfish integration via child process communication
+
+### Database
+- MongoDB with Mongoose models
+
+---
+
+# How It Works
+
+1. A user imports a Chess.com game or loads a public archive
+2. The backend parses the PGN and sends positions to Stockfish
+3. Stockfish evaluates each move and position
+4. Significant evaluation drops are detected as mistakes
+5. Important positions are stored as puzzle candidates
+6. Users can later solve generated puzzles based on their own games
+
+The puzzle system focuses on meaningful mistakes rather than generic engine-perfect play, creating a more personalized training experience.
+
+---
+
+# Tech Stack
+
+## Frontend
 - React
 - JavaScript
 - React Router
-- Chessboard UI components
 
-**Backend**
+## Backend
 - Node.js
 - Express.js
-- Stockfish (engine analysis)
 
-**Database**
+## Database
 - MongoDB
+- Mongoose
+
+## Chess Libraries & Engine
+- Stockfish
+- chess.js
+- react-chessboard
 
 ---
-## Setup
 
-### Prerequisites
-- Node.js
-- MongoDB
-- Stockfish chess engine
+# Installation
 
-### Installation
+## Clone Repository
 
 ```bash
-git clone https://github.com/Wojnarrr/Chess_Trainer
-cd chess-trainer
+git clone https://github.com/Wojnarrr/Chess_Trainer.git
+cd Chess_Trainer
+```
+
+## Install Frontend Dependencies
+
+```bash
 cd client
 npm install
 npm start
+```
+
+## Install Backend Dependencies
+
+```bash
 cd server
 npm install
 npm run dev
+```
+
+## Stockfish Setup
+
+Ensure Stockfish is installed and correctly configured within the backend engine integration.
+
+---
+
+# Project Goals
+
+The project was designed to:
+- Improve chess learning through personalized training
+- Automate game analysis and mistake detection
+- Create reusable puzzles from real gameplay
+- Provide an integrated platform for opening study and tactical improvement
+
+---
+
+# Future Improvements
+
+- Opening classification system
+- Puzzle difficulty rating
+- Advanced statistics dashboard
+- Multiplayer functionality
+- Cloud deployment
+- User authentication expansion
+- Engine evaluation graphs
+- Endgame tablebase integration
+
+---
+
+# Screenshots
+
+Add application screenshots here:
+- Opening Trainer
+- Puzzle Mode
+- Game Analysis
+- Bot Game
+- Player Lookup
+- Profile Dashboard
+
+---
+
+# Project Highlights
+
+This project demonstrates:
+- Full-stack web development
+- AI engine integration
+- REST API development
+- Chess engine communication
+- Real-world game data analysis
+- Interactive UI design
+- Database-driven puzzle generation
+
+---
+
+# Author
+
+Kacper
+
+GitHub: https://github.com/Wojnarrr
