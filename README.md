@@ -2,13 +2,14 @@
 
 ## Overview
 
-Chess Trainer is a full-stack chess learning platform designed to help players improve through interactive training, automated game analysis, and personalized puzzle generation.
+Chess Trainer is a full-stack chess learning platform that combines opening training, game analysis, and personalized puzzle generation using the Stockfish chess engine.
 
-The application combines opening training, game exploration, AI-assisted analysis, and mistake-based puzzle solving into a single platform. Using the Stockfish chess engine, the system evaluates games, identifies critical mistakes, and converts them into training opportunities tailored to the player.
+The application allows users to analyze games, detect mistakes through engine evaluation, and train using puzzles generated from real gameplay positions. The system was designed to bridge the gap between playing games and structured improvement by transforming player mistakes into interactive training opportunities.
 
-The project was developed to bridge the gap between playing games and structured improvement by allowing users to train directly from their own mistakes and game history.
+The project integrates opening study, tactical training, automated analysis, and game exploration into a single application focused on practical chess improvement.
 
 ---
+
 
 # Features
 
@@ -85,24 +86,55 @@ Stockfish Engine (Child Process)
 MongoDB Database
 ```
 
+
 ## Architecture Components
 
 ### Frontend
 - React
 - React Router
-- Chessboard UI integration
+- react-chessboard
+- Component-based UI architecture
 
 ### Backend
 - Node.js
 - Express.js REST API
+- MongoDB integration
+- Chess.com archive processing
 
 ### Chess Engine
 - Stockfish integration via child process communication
+- Automated position analysis
+- Move evaluation and best move generation
 
 ### Database
-- MongoDB with Mongoose models
+- MongoDB
+- Mongoose models
+- Puzzle candidate storage
+- User profile management
 
 ---
+# Project Structure
+
+```text
+Chess_Trainer/
+│
+├── backend/
+│   ├── engine/
+│   ├── models/
+│   ├── routes/
+│   └── server.js
+│
+├── client/
+│   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   └── styles/
+│
+├── README.md
+└── .gitignore
+```
+
 
 # How It Works
 
@@ -114,6 +146,16 @@ MongoDB Database
 6. Users can later solve generated puzzles based on their own games
 
 The puzzle system focuses on meaningful mistakes rather than generic engine-perfect play, creating a more personalized training experience.
+
+---
+
+# API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | /api/analyze | Analyze a chess position using Stockfish |
+| GET | /api/archives/:username | Fetch Chess.com archives |
+| POST | /api/puzzles | Store generated puzzle candidates |
 
 ---
 
@@ -148,7 +190,9 @@ git clone https://github.com/Wojnarrr/Chess_Trainer.git
 cd Chess_Trainer
 ```
 
-## Install Frontend Dependencies
+---
+
+## Run Frontend
 
 ```bash
 cd client
@@ -156,17 +200,47 @@ npm install
 npm start
 ```
 
-## Install Backend Dependencies
+Frontend runs on:
 
-```bash
-cd server
-npm install
-npm run dev
+```text
+http://localhost:3000
 ```
 
-## Stockfish Setup
+---
+
+## Run Backend
+
+```bash
+cd backend
+npm install
+node server.js
+```
+
+Backend runs on:
+
+```text
+http://localhost:4000
+```
+
+---
+# Stockfish Setup
 
 Ensure Stockfish is installed and correctly configured within the backend engine integration.
+
+The application communicates with the Stockfish engine through Node.js child process integration for move evaluation and analysis.
+
+---
+# Technical Highlights
+
+- Full-stack React and Node.js architecture
+- Stockfish chess engine integration
+- Automated mistake detection based on evaluation drops
+- MongoDB database integration
+- REST API development
+- Interactive chessboard system
+- Dynamic puzzle generation pipeline
+- Chess.com archive integration
+- PGN parsing and analysis
 
 ---
 
@@ -187,21 +261,9 @@ The project was designed to:
 - Advanced statistics dashboard
 - Multiplayer functionality
 - Cloud deployment
-- User authentication expansion
+- Expanded authentication system
 - Engine evaluation graphs
 - Endgame tablebase integration
-
----
-
-# Screenshots
-
-Add application screenshots here:
-- Opening Trainer
-- Puzzle Mode
-- Game Analysis
-- Bot Game
-- Player Lookup
-- Profile Dashboard
 
 ---
 
@@ -209,12 +271,13 @@ Add application screenshots here:
 
 This project demonstrates:
 - Full-stack web development
-- AI engine integration
 - REST API development
 - Chess engine communication
 - Real-world game data analysis
 - Interactive UI design
 - Database-driven puzzle generation
+- Algorithmic mistake detection
+- External API integration
 
 ---
 
