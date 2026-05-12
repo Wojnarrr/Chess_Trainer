@@ -25,14 +25,18 @@ app.use(cors({
     credentials: true
 }));
 app.use(express.json());
-
+app.set('trust proxy', 1);
 // Session setup
 app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({ mongoUrl: MONGO_URI }),
-    cookie: { maxAge: 1000 * 60 * 60 * 24 * 1000 } // 1 day
+    cookie: {
+        maxAge: 1000 * 60 * 60 * 24,
+        sameSite: 'none',
+        secure: true
+    }
 }));
 
 // Health check
