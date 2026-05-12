@@ -38,6 +38,7 @@ export default function OpeningsPage() {
     const [puzzleIdx, setPuzzleIdx] = useState(0);
     const [expectedMove, setExpectedMove] = useState(null);
     const [score, setScore] = useState(0);
+    const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:4000';
 
     useEffect(() => {
         setLives(DIFFICULTY_LIVES[difficulty]);

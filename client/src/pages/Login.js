@@ -6,10 +6,11 @@ export default function Login() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState(null);
     const nav = useNavigate();
+    const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:4000';
 
     const handleSubmit = async e => {
         e.preventDefault();
-        const res = await fetch('http://localhost:4000/api/auth/login', {
+        const res = await fetch(`${API_URL}/api/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',

@@ -6,6 +6,7 @@ import '../styles/Profile.css';
 export default function Profile() {
     const [user, setUser] = useState(null);
     const [error, setError] = useState(null);
+    const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:4000';
 
     // Chess.com import controls
     const [chesscomUsername, setChesscomUsername] = useState('');
@@ -15,7 +16,7 @@ export default function Profile() {
         async function fetchProfile() {
             try {
                 console.log('[Profile] Fetching user profile...');
-                const meRes = await fetch('http://localhost:4000/api/auth/me', { credentials: 'include' });
+                const meRes = await fetch(`${API_URL}/api/auth/me`, { credentials: 'include' });
                 if (!meRes.ok) throw new Error('Not authenticated');
                 const meData = await meRes.json();
                 setUser(meData);
@@ -35,7 +36,7 @@ export default function Profile() {
 
         async function initPuzzlesIfNeeded() {
             try {
-                const res = await fetch('http://localhost:4000/api/puzzles/init', {
+                const res = await fetch(`${API_URL}/api/puzzles/init`, {
                     credentials: 'include'
                 });
                 if (res.ok) {
@@ -79,7 +80,7 @@ export default function Profile() {
                     />
                     <button
                         onClick={async () => {
-                            const res = await fetch('http://localhost:4000/api/auth/chesscom', {
+                            const res = await fetch(`${API_URL}/api/auth/chesscom`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 credentials: 'include',
@@ -99,7 +100,7 @@ export default function Profile() {
 
             <button
                 onClick={() =>
-                    fetch('http://localhost:4000/api/auth/logout', {
+                    fetch(`${API_URL}/api/auth/logout`, {
                         method: 'POST',
                         credentials: 'include',
                     }).then(() => (window.location = '/'))
@@ -115,7 +116,7 @@ export default function Profile() {
                         const confirm = window.confirm("This will replace your previous puzzle set. Continue?");
                         if (!confirm) return;
                         try {
-                            const res = await fetch('http://localhost:4000/api/puzzles/refresh', {
+                            const res = await fetch(`${API_URL}/api/puzzles/refresh`, {
                                 method: 'POST',
                                 credentials: 'include'
                             });

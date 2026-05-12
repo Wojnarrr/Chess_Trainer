@@ -15,6 +15,7 @@ export default function MistakePuzzle() {
     const [orientation, setOrientation] = useState('white');
     const [shakeSq, setShakeSq] = useState(null);
 
+    const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:4000';
 
     const loadPuzzle = async () => {
         setStatus('Loading puzzle...');
@@ -22,7 +23,7 @@ export default function MistakePuzzle() {
         setSolutionShown(false);
         setHighlightSquares({});
         try {
-            const res = await fetch('http://localhost:4000/api/puzzles/random', {
+            const res = await fetch(`${API_URL}/api/puzzles/random`, {
                 credentials: 'include'
             });
             if (!res.ok) {
@@ -107,7 +108,7 @@ export default function MistakePuzzle() {
         setStatus('Analyzing...');
 
         try {
-            const res = await fetch('http://localhost:4000/api/analyze', {
+            const res = await fetch(`${API_URL}/api/analyze`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',

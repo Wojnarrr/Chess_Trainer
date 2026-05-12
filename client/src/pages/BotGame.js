@@ -4,6 +4,7 @@ import { Chessboard } from 'react-chessboard';
 import '../styles/BotGame.css';
 
 const LEVELS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:4000';
 
 export default function BotGame() {
     const [game, setGame] = useState(new Chess());
@@ -39,7 +40,7 @@ export default function BotGame() {
         if (historyIndex !== null) return; // don't move during history view
         setThinking(true);
         const fen = game.fen();
-        const res = await fetch('http://localhost:4000/api/analyze/botmove', {
+        const res = await fetch(`${API_URL}/api/analyze/botmove`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ fen, level: selectedLevel })
@@ -61,7 +62,7 @@ export default function BotGame() {
     // Make bot move with a specific FEN, useful for initial bot move
     const makeBotMoveWithFen = async (gameInstance, fen, level) => {
         setThinking(true);
-        const res = await fetch('http://localhost:4000/api/analyze/botmove', {
+        const res = await fetch(`${API_URL}/api/analyze/botmove`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ fen, level })

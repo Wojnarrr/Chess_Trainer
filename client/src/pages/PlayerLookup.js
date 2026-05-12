@@ -12,11 +12,12 @@ export default function PlayerLookup() {
     const [selectedMistakeGame, setSelectedMistakeGame] = useState(null);
     const [mistakesForSelectedGame, setMistakesForSelectedGame] = useState([]);
     const [analyzingGameId, setAnalyzingGameId] = useState(null);
+    const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:4000';
 
     useEffect(() => {
         async function fetchProfile() {
             try {
-                const res = await fetch('http://localhost:4000/api/auth/me', {
+                const res = await fetch(`${API_URL}/api/auth/me`, {
                     credentials: 'include'
                 });
                 if (res.ok) {
@@ -89,7 +90,7 @@ export default function PlayerLookup() {
             }
 
             try {
-                const res = await fetch('http://localhost:4000/api/analyze', {
+                const res = await fetch(`${API_URL}/api/analyze`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ fen, actualSan }),
