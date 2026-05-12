@@ -18,7 +18,12 @@ mongoose.connect(MONGO_URI, {
     .catch(err => console.error('MongoDB connection error:', err));
 
 // Middleware
-app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
+const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:3000';
+
+app.use(cors({
+    origin: CLIENT_URL,
+    credentials: true
+}));
 app.use(express.json());
 
 // Session setup
