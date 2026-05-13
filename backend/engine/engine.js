@@ -215,11 +215,16 @@ function getBotMove(fen, elo = 1320, depth = 6) {
                         return reject(new Error('Stockfish returned no bestmove'));
                     }
 
-                    const move = chess.move({
+                    const moveObj = {
                         from: bestMove.slice(0, 2),
-                        to: bestMove.slice(2, 4),
-                        promotion: bestMove.length > 4 ? bestMove[4] : 'q'
-                    });
+                        to: bestMove.slice(2, 4)
+                    };
+
+                    if (bestMove.length > 4) {
+                        moveObj.promotion = bestMove[4];
+                    }
+
+                    const move = chess.move(moveObj);
 
                     stockfish.stdin.write('quit\n');
 
