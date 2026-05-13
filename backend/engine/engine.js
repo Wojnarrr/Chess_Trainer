@@ -4,7 +4,7 @@ const { Chess } = require('chess.js');
 const STOCKFISH_PATH =
     process.platform === 'win32'
         ? path.join(__dirname, '../stockfish/stockfish.exe')
-        : require.resolve('stockfish/src/stockfish.js');
+        : require.resolve('stockfish');
 
 const BLUNDER_THRESHOLD = 150;
 
