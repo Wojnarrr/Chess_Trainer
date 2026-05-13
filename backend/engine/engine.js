@@ -48,11 +48,16 @@ function analyzePosition(fen, actualSan = null, depth = 12) {
 
                     // Try to parse the best move
                     try {
-                        const move = chess.move({
+                        const moveObj = {
                             from: bestMove.slice(0, 2),
-                            to: bestMove.slice(2, 4),
-                            promotion: 'q'
-                        }, { sloppy: true });
+                            to: bestMove.slice(2, 4)
+                        };
+
+                        if (bestMove.length > 4) {
+                            moveObj.promotion = bestMove[4];
+                        }
+
+                        const move = chess.move(moveObj);
 
                         bestSan = move?.san || null;
                     } catch (err) {
