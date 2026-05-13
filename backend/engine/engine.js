@@ -2,10 +2,9 @@ const { spawn } = require('child_process');
 const path = require('path');
 const { Chess } = require('chess.js');
 const STOCKFISH_PATH =
-    process.env.STOCKFISH_PATH ||
-    (process.platform === 'win32'
+    process.platform === 'win32'
         ? path.join(__dirname, '../stockfish/stockfish.exe')
-        : 'stockfish');
+        : require.resolve('stockfish/src/stockfish.js');
 
 const BLUNDER_THRESHOLD = 150;
 
@@ -13,7 +12,9 @@ const BLUNDER_THRESHOLD = 150;
 //Analyzes a chess position using Stockfish engine.
 function analyzePosition(fen, actualSan = null, depth = 12) {
     return new Promise(async (resolve, reject) => {
-        const stockfish = spawn(STOCKFISH_PATH);
+        const stockfish = process.platform === 'win32'
+            ? spawn(STOCKFISH_PATH)
+            : spawn('node', [STOCKFISH_PATH]);
         let evalBefore = null;  // Evaluation before the user's move
         let bestMove = null;  // The best move suggested by Stockfish
         let bestSan = null;  // The SAN (Standard Algebraic Notation) of the best move
@@ -125,7 +126,10 @@ function analyzePosition(fen, actualSan = null, depth = 12) {
 // Gets the best move for a given position using Stockfish engine.
 function getBotMove(fen, elo = 200, depth = 6) {
     return new Promise((resolve, reject) => {
-        const stockfish = spawn(STOCKFISH_PATH);        const chess = new Chess(fen);
+        const stockfish = process.platform === 'win32'
+            ? spawn(STOCKFISH_PATH)
+            : spawn('node', [STOCKFISH_PATH]);
+        const chess = new Chess(fen);
         let buffer = '';
         let bestMove = null;
         let bestSan = null;
