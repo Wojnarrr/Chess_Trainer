@@ -4,17 +4,14 @@ const { Chess } = require('chess.js');
 const STOCKFISH_PATH =
     process.platform === 'win32'
         ? path.join(__dirname, '../stockfish/stockfish.exe')
-        : require.resolve('stockfish');
-
+        : path.join(__dirname, '../stockfish/stockfish-linux');
 const BLUNDER_THRESHOLD = 150;
 
 
 //Analyzes a chess position using Stockfish engine.
 function analyzePosition(fen, actualSan = null, depth = 12) {
     return new Promise(async (resolve, reject) => {
-        const stockfish = process.platform === 'win32'
-            ? spawn(STOCKFISH_PATH)
-            : spawn('node', [STOCKFISH_PATH]);
+        const stockfish = spawn(STOCKFISH_PATH);
         let evalBefore = null;  // Evaluation before the user's move
         let bestMove = null;  // The best move suggested by Stockfish
         let bestSan = null;  // The SAN (Standard Algebraic Notation) of the best move
@@ -123,57 +120,126 @@ function analyzePosition(fen, actualSan = null, depth = 12) {
     });
 }
 
-// Gets the best move for a given position using Stockfish engine.
-function getBotMove(fen, elo = 200, depth = 6) {
+// // Gets the best move for a given position using Stockfish engine.
+// function getBotMove(fen, elo = 200, depth = 6) {
+//     return new Promise((resolve, reject) => {
+//         const stockfish = spawn(STOCKFISH_PATH);
+//         const chess = new Chess(fen);
+//         let buffer = '';
+//         let bestMove = null;
+//         let bestSan = null;
+//
+//         // Setup Stockfish engine with UCI protocol
+//         stockfish.stdin.write('uci\n');
+//         stockfish.stdin.write(`setoption name UCI_LimitStrength value true\n`);
+//         stockfish.stdin.write(`setoption name UCI_Elo value ${elo}\n`);
+//         stockfish.stdin.write(`position fen ${fen}\n`);
+//         stockfish.stdin.write(`go depth ${depth}\n`);
+//
+//         stockfish.stdout.on('data', (data) => {
+//             buffer += data.toString();
+//             const lines = buffer.split('\n');
+//
+//             for (const line of lines) {
+//                 if (line.startsWith('bestmove')) {
+//                     bestMove = line.split(' ')[1];
+//                     stockfish.kill();
+//
+//                     const move = chess.move({
+//                         from: bestMove.slice(0, 2),
+//                         to: bestMove.slice(2, 4),
+//                         promotion: 'q'
+//                     }, { sloppy: true });
+//
+//                     bestSan = move?.san || null;
+//
+//                     return resolve({
+//                         bestMove,
+//                         san: bestSan
+//                     });
+//                 }
+//             }
+//         });
+//
+//         stockfish.stderr.on('data', (data) => console.error('[Stockfish stderr]', data.toString()));
+//         stockfish.on('error', reject);
+//         stockfish.on('exit', () => {
+//             if (!bestMove) reject(new Error('Stockfish exited before returning bestmove'));
+//         });
+//     });
+// }
+function getBotMove(fen, elo = 1320, depth = 6) {
     return new Promise((resolve, reject) => {
-        const stockfish = process.platform === 'win32'
-            ? spawn(STOCKFISH_PATH)
-            : spawn('node', [STOCKFISH_PATH]);
+        const stockfish = spawn(STOCKFISH_PATH);
         const chess = new Chess(fen);
+
         let buffer = '';
         let bestMove = null;
-        let bestSan = null;
+        let stderrOutput = '';
 
-        // Setup Stockfish engine with UCI protocol
+        const safeElo = Math.max(1320, Math.min(3190, Number(elo) || 1320));
+
         stockfish.stdin.write('uci\n');
-        stockfish.stdin.write(`setoption name UCI_LimitStrength value true\n`);
-        stockfish.stdin.write(`setoption name UCI_Elo value ${elo}\n`);
-        stockfish.stdin.write(`position fen ${fen}\n`);
-        stockfish.stdin.write(`go depth ${depth}\n`);
 
         stockfish.stdout.on('data', (data) => {
             buffer += data.toString();
+
             const lines = buffer.split('\n');
 
-            for (const line of lines) {
+            for (const rawLine of lines) {
+                const line = rawLine.trim();
+
+                console.log('[Stockfish]', line);
+
+                if (line === 'uciok') {
+                    stockfish.stdin.write('isready\n');
+                }
+
+                if (line === 'readyok') {
+                    stockfish.stdin.write('setoption name UCI_LimitStrength value true\n');
+                    stockfish.stdin.write(`setoption name UCI_Elo value ${safeElo}\n`);
+                    stockfish.stdin.write(`position fen ${fen}\n`);
+                    stockfish.stdin.write(`go depth ${depth}\n`);
+                }
+
                 if (line.startsWith('bestmove')) {
                     bestMove = line.split(' ')[1];
-                    stockfish.kill();
+
+                    if (!bestMove || bestMove === '(none)' || bestMove === 'none') {
+                        stockfish.kill();
+                        return reject(new Error('Stockfish returned no bestmove'));
+                    }
 
                     const move = chess.move({
                         from: bestMove.slice(0, 2),
                         to: bestMove.slice(2, 4),
-                        promotion: 'q'
-                    }, { sloppy: true });
+                        promotion: bestMove.length > 4 ? bestMove[4] : 'q'
+                    });
 
-                    bestSan = move?.san || null;
+                    stockfish.stdin.write('quit\n');
 
                     return resolve({
                         bestMove,
-                        san: bestSan
+                        san: move?.san || null
                     });
                 }
             }
         });
 
-        stockfish.stderr.on('data', (data) => console.error('[Stockfish stderr]', data.toString()));
+        stockfish.stderr.on('data', (data) => {
+            stderrOutput += data.toString();
+            console.error('[Stockfish stderr]', data.toString());
+        });
+
         stockfish.on('error', reject);
-        stockfish.on('exit', () => {
-            if (!bestMove) reject(new Error('Stockfish exited before returning bestmove'));
+
+        stockfish.on('exit', (code) => {
+            if (!bestMove) {
+                reject(new Error(`Stockfish exited before bestmove. Code: ${code}. Stderr: ${stderrOutput}`));
+            }
         });
     });
 }
-
 module.exports = {
     analyzePosition,
     getBotMove
