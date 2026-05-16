@@ -226,7 +226,7 @@ function getBotMove(fen, elo = 1320, depth = 6) {
 
                     // const move = chess.move(moveObj);
 
-                    stockfish.stdin.write('quit\n');
+                    stockfish.kill();
 
                     return resolve({
                         bestMove,
