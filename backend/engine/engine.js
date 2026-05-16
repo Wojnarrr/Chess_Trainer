@@ -230,7 +230,7 @@ function getBotMove(fen, elo = 1320, depth = 6) {
 
                     return resolve({
                         bestMove,
-                        san: move?.san || null
+                        san: null
                     });
                 }
             }
