@@ -72,12 +72,18 @@ export default function BotGame() {
         if (data && data.bestMove) {
             const move = {
                 from: data.bestMove.slice(0, 2),
-                to: data.bestMove.slice(2, 4),
-                promotion: 'q'
+                to: data.bestMove.slice(2, 4)
             };
+
+            if (data.bestMove.length > 4) {
+                move.promotion = data.bestMove[4];
+            }
+
             gameInstance.move(move);
+
             const newGame = new Chess();
-            newGame.loadPgn(gameInstance.pgn()); // preserve move history
+            newGame.loadPgn(gameInstance.pgn());
+
             setGame(newGame);
             setPosition(newGame.fen());
         }
@@ -85,23 +91,47 @@ export default function BotGame() {
     };
 
     // Handle piece drop on the board
+    // const onDrop = (source, target) => {
+    //     if (historyIndex !== null) return false;
+    //
+    //     try {
+    //         game.move({ from: source, to: target, promotion: 'q' });
+    //     } catch (e) {
+    //         // Invalid move – trigger shake
+    //         setShakeSq(source);
+    //         setTimeout(() => setShakeSq(null), 500);
+    //         return false;
+    //     }
+    //
+    //     setPosition(game.fen());
+    //     setTimeout(makeBotMove, 500);
+    //     return true;
+    // };
     const onDrop = (source, target) => {
-        if (historyIndex !== null) return false;
+        if (historyIndex !== null || thinking) return false;
 
+        const gameCopy = new Chess(game.fen());
+
+        let userMove;
         try {
-            game.move({ from: source, to: target, promotion: 'q' });
+            userMove = gameCopy.move({ from: source, to: target, promotion: 'q' });
         } catch (e) {
-            // Invalid move – trigger shake
             setShakeSq(source);
             setTimeout(() => setShakeSq(null), 500);
             return false;
         }
 
-        setPosition(game.fen());
-        setTimeout(makeBotMove, 500);
+        if (!userMove) return false;
+
+        setGame(gameCopy);
+        setPosition(gameCopy.fen());
+
+        setTimeout(() => {
+            makeBotMoveWithFen(gameCopy, gameCopy.fen(), selectedLevel);
+        }, 500);
+
         return true;
     };
-
 
 
     const formatMoveHistory = () => {
